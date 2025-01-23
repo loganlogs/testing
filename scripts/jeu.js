@@ -57,6 +57,9 @@ async function chargerScore() {
     console.log("Score chargé depuis la base de données :", score);
   } else {
     console.log("Aucun score trouvé, création d'un nouveau score.");
+    // Créer un score initial si l'utilisateur n'a pas de score
+    score = 0;
+    sauvegarderScore(username, score);
   }
 }
 
@@ -64,8 +67,13 @@ async function chargerScore() {
 function sauvegarderScore(username, points) {
   const userRef = ref(db, `scores/${userId}`);
   set(userRef, { username, score: points })
-    .then(() => console.log("Score mis à jour avec succès !"))
-    .catch((error) => console.error("Erreur lors de l'enregistrement du score :", error));
+    .then(() => {
+      console.log("Score mis à jour avec succès !");
+      afficherScores();  // Afficher les scores après la mise à jour
+    })
+    .catch((error) => {
+      console.error("Erreur lors de l'enregistrement du score :", error);
+    });
 }
 
 // Afficher les scores dans le tableau HTML
@@ -120,6 +128,7 @@ function afficherScores() {
   // Connexion ou mode invité
   loginButton.addEventListener("click", () => {
     username = usernameInput.value.trim() || "Invité"; // Si pas de nom, utilisateur reste "Invité"
+    localStorage.setItem("username", username); // Sauvegarde du username
     loginDiv.style.display = "none";
     gameDiv.style.display = "block";
     startGame();
