@@ -56,6 +56,41 @@ const db = getDatabase(app);
     });
 }
 
+function afficherScores() {
+  onValue(scoresRef, (snapshot) => {
+    const scoresData = snapshot.val();
+    const scoresArray = [];
+
+    // Transforme les données en tableau pour pouvoir trier
+    for (let key in scoresData) {
+      scoresArray.push(scoresData[key]);
+    }
+
+    // Trie les scores du plus élevé au plus bas
+    scoresArray.sort((a, b) => a.score - b.score);
+
+    // Affiche les scores dans la console (ou ajoute du HTML)
+    console.log("Classement des scores :");
+    scoresArray.forEach((score, index) => {
+      console.log(`${index + 1}. ${score.username} : ${score.score}`);
+    });
+  });
+}
+
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+
+const auth = getAuth();
+signInAnonymously(auth)
+  .then(() => {
+    console.log("Utilisateur connecté anonymement !");
+  })
+  .catch((error) => {
+    console.error("Erreur d'authentification :", error);
+  });
+
+  
+// Appelle cette fonction pour afficher les scores
+afficherScores();
 
   // Connexion utilisateur ou mode invité
   loginButton.addEventListener('click', () => {
