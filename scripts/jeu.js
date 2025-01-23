@@ -116,18 +116,39 @@ function finDeJeu() {
   document.getElementById("reset").style.display = "inline"; // Affiche le bouton Reset
 }
 
-// Sauvegarde des scores dans Firebase
+// Sauvegarder ou ajouter des points pour un utilisateur
 function sauvegarderScore(username, points) {
   const userRef = ref(db, `scores/${userId}`);
-  set(userRef, {
-    username: username,
-    score: points
-  }).then(() => {
-    console.log("Score mis à jour avec succès !");
+
+  // Récupérer les points actuels de l'utilisateur avant de les ajouter
+  get(userRef).then((snapshot) => {
+    if (snapshot.exists()) {
+      const existingData = snapshot.val();
+      const newScore = existingData.score + points; // Ajouter les nouveaux points
+      set(userRef, {
+        username: username,
+        score: newScore // Mettre à jour avec le score cumulé
+      }).then(() => {
+        console.log("Score mis à jour avec succès !");
+      }).catch((error) => {
+        console.error("Erreur lors de l'enregistrement du score :", error);
+      });
+    } else {
+      // Si l'utilisateur n'a pas encore de score enregistré, on l'ajoute directement
+      set(userRef, {
+        username: username,
+        score: points // Enregistrer les premiers points
+      }).then(() => {
+        console.log("Score ajouté pour la première fois !");
+      }).catch((error) => {
+        console.error("Erreur lors de l'enregistrement du score :", error);
+      });
+    }
   }).catch((error) => {
-    console.error("Erreur lors de l'enregistrement du score :", error);
+    console.error("Erreur lors de la récupération du score :", error);
   });
 }
+
 
 // Afficher les scores dans le tableau
 function afficherScores() {
