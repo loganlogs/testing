@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
 // Config Firebase
@@ -148,7 +148,6 @@ function sauvegarderScore(username, points) {
     console.error("Erreur lors de la récupération du score :", error);
   });
 }
-
 
 // Afficher les scores dans le tableau
 function afficherScores() {
