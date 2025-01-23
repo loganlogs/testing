@@ -1,3 +1,20 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+
+// Ta configuration Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyAEuk1wol1lNcSrzEGqRu31kCuoGpD9PTQ",
+  authDomain: "jeu-hasard.firebaseapp.com",
+  databaseURL: "https://jeu-hasard-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jeu-hasard",
+  storageBucket: "jeu-hasard.appspot.com",
+  messagingSenderId: "654185101593",
+  appId: "1:654185101593:web:5b95112878620ace536d88"
+};
+
+// Initialise Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 
 (() => {
