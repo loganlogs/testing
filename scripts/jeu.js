@@ -64,12 +64,17 @@ function enregistrerScore(nouveauScore) {
 }
 
 // Afficher les scores dans le tableau HTML
+// Fonction pour afficher les scores
 function afficherScores() {
   const scoresRef = ref(db, "scores");
   onValue(scoresRef, (snapshot) => {
     const scoresData = snapshot.val();
+    if (!scoresData) {
+      console.log("Aucun score trouvé.");
+      return;
+    }
+    
     const scoresArray = [];
-
     // Transformer les données en tableau
     for (const key in scoresData) {
       scoresArray.push(scoresData[key]);
