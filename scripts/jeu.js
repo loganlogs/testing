@@ -63,7 +63,7 @@ function enregistrerScore(nouveauScore) {
     .catch((error) => console.error("Erreur lors de l'enregistrement du score :", error));
 }
 
-// Afficher les scores
+// Afficher les scores dans le tableau HTML
 function afficherScores() {
   const scoresRef = ref(db, "scores");
   onValue(scoresRef, (snapshot) => {
@@ -78,10 +78,19 @@ function afficherScores() {
     // Trier par score décroissant
     scoresArray.sort((a, b) => b.score - a.score);
 
-    // Afficher les scores dans la console
-    console.log("Classement des scores :");
+    // Récupérer le tbody pour ajouter les scores
+    const scoreTable = document.getElementById("scoreTable").querySelector("tbody");
+    scoreTable.innerHTML = ''; // Vider le tableau avant de le remplir
+
+    // Afficher chaque score dans une nouvelle ligne du tableau
     scoresArray.forEach((data, index) => {
-      console.log(`${index + 1}. ${data.username} : ${data.score}`);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${data.username}</td>
+        <td>${data.score}</td>
+      `;
+      scoreTable.appendChild(row);
     });
   });
 }
@@ -113,6 +122,6 @@ function afficherScores() {
   // Début d'une nouvelle partie
   function startGame() {
     console.log("Nouvelle partie pour :", username);
-    afficherScores();
+    afficherScores(); // Appelle la fonction pour afficher les scores au démarrage du jeu
   }
 })();
