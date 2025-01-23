@@ -44,16 +44,10 @@ function initAuth() {
     // Si le cookie existe, utiliser l'ID utilisateur du cookie
     console.log("Utilisateur récupéré depuis le cookie :", userId);
     chargerScore();
+    afficherPageJeu();  // Afficher directement la page de jeu sans passer par la connexion
   } else {
-    // Si aucun cookie, connecter anonymement l'utilisateur
-    signInAnonymously(auth)
-      .then(() => {
-        userId = auth.currentUser.uid;
-        setCookie("userId", userId, 30);  // Créer un cookie qui dure 30 jours
-        console.log("Utilisateur connecté anonymement :", userId);
-        chargerScore();
-      })
-      .catch((error) => console.error("Erreur d'authentification :", error));
+    // Si aucun cookie, afficher le formulaire de connexion
+    afficherPageConnexion();
   }
 }
 
@@ -140,6 +134,7 @@ function afficherScores() {
   const gameDiv = document.getElementById("game");
   const usernameInput = document.getElementById("username");
   const loginButton = document.getElementById("loginButton");
+  const reconnectButton = document.getElementById("reconnectButton");
 
   const input = document.getElementById("proposition");
   const envoyer = document.getElementById("envoyer");
@@ -151,6 +146,20 @@ function afficherScores() {
   // Si le cookie existe déjà, récupérer le pseudo
   if (userId) {
     username = getCookie("username") || "Invité";  // Si le cookie existe, on récupère le pseudo
+  }
+
+  // Afficher la page de connexion si l'utilisateur n'est pas connecté
+  function afficherPageConnexion() {
+    loginDiv.style.display = "block";
+    gameDiv.style.display = "none";
+    reconnectButton.style.display = "none";
+  }
+
+  // Afficher la page de jeu si l'utilisateur est déjà connecté
+  function afficherPageJeu() {
+    loginDiv.style.display = "none";
+    gameDiv.style.display = "block";
+    reconnectButton.style.display = "none";
   }
 
   // Connexion ou mode invité
@@ -165,6 +174,7 @@ function afficherScores() {
     }
 
     setCookie("username", username, 30); // Créer un cookie pour le pseudo
+    setCookie("userId", userId, 30); // Créer un cookie pour l'ID utilisateur
     loginDiv.style.display = "none";
     gameDiv.style.display = "block";
     startGame();
@@ -184,6 +194,7 @@ function afficherScores() {
     tentatives.textContent = "";
     input.disabled = false;
     envoyer.disabled = false;
+    reset.disabled = false;
 
     input.focus();
   }
