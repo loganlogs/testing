@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
 // Config Firebase
@@ -48,6 +48,7 @@ if (!userId) {
       loginDiv.style.display = "none";
       gameDiv.style.display = "block";
       startGame();
+      afficherScores(); // Charger les scores dès la connexion
     }).catch((error) => console.error("Erreur d'authentification :", error));
   });
 } else {
@@ -58,6 +59,7 @@ if (!userId) {
   gameDiv.style.display = "block";
   username = localStorage.getItem("username");
   startGame();
+  afficherScores(); // Charger les scores dès la connexion
 }
 
 // Fonction pour démarrer une nouvelle partie
@@ -91,7 +93,7 @@ function verifier() {
     document.querySelector(".resultat").textContent = `Bravo ${username || "Invité"} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
     document.querySelector(".tentatives").textContent = `Score gagné : ${score} points.`;
     sauvegarderScore(username, score);
-    afficherScores();
+    afficherScores(); // Met à jour le tableau des scores
     finDeJeu();
   } else if (proposition < randomNumber) {
     document.querySelector(".tropHautTropBas").textContent = "C'est plus grand !";
