@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, update, child } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
 // Configuration Firebase
@@ -83,6 +83,22 @@ function sauvegarderScore(username, points) {
     });
 }
 
+// Vérifier si le pseudo est déjà pris
+function verifierPseudoDispo(username) {
+  const usernameRef = ref(db, 'scores');
+  return get(usernameRef).then(snapshot => {
+    const users = snapshot.val();
+    if (users) {
+      for (const key in users) {
+        if (users[key].username === username) {
+          return false;  // Le pseudo est déjà pris
+        }
+      }
+    }
+    return true;  // Le pseudo est disponible
+  });
+}
+
 // Afficher les scores dans le tableau HTML
 function afficherScores() {
   const scoresRef = ref(db, "scores");
@@ -138,12 +154,23 @@ function afficherScores() {
   }
 
   // Connexion ou mode invité
-  loginButton.addEventListener("click", () => {
+  loginButton.addEventListener("click", async () => {
     username = usernameInput.value.trim() || "Invité"; // Si pas de nom, utilisateur reste "Invité"
+    
+    // Vérifier si le pseudo est déjà pris
+    const pseudoDispo = await verifierPseudoDispo(username);
+    if (!pseudoDispo) {
+      alert("Ce pseudo est déjà pris. Veuillez en choisir un autre.");
+      return;
+    }
+
     setCookie("username", username, 30); // Créer un cookie pour le pseudo
     loginDiv.style.display = "none";
     gameDiv.style.display = "block";
     startGame();
+    
+    // Désactiver l'input du pseudo après la connexion
+    usernameInput.disabled = true; // Désactiver le champ du pseudo une fois qu'il est défini
   });
 
   // Démarrer un nouveau jeu
