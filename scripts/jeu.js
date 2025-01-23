@@ -18,28 +18,28 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth();
 
-// Gestion locale pour l'utilisateur
+// Variables utilisateur
 let userId = localStorage.getItem("userId");
 let username = localStorage.getItem("username");
-let score = 0;  // Initialisation du score
+let score = 0;  // Le score global
 
 // Fonction pour récupérer l'utilisateur anonyme ou authentifié
 function initAuth() {
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // Si l'utilisateur est connecté, récupérer son ID
+      // Utilisateur authentifié, récupérer son ID
       userId = user.uid;
       localStorage.setItem("userId", userId);
       console.log("Utilisateur connecté :", userId);
-      chargerScore();  // Charger le score de l'utilisateur si disponible
+      chargerScore();  // Charger le score depuis la base de données
     } else {
-      // Si l'utilisateur n'est pas connecté, procéder à la connexion anonyme
+      // Utilisateur anonyme
       signInAnonymously(auth)
         .then(() => {
           console.log("Utilisateur connecté anonymement !");
           userId = auth.currentUser.uid;
           localStorage.setItem("userId", userId);
-          chargerScore();  // Charger le score de l'utilisateur si disponible
+          chargerScore();  // Charger le score depuis la base de données
         })
         .catch((error) => {
           console.error("Erreur d'authentification :", error);
@@ -48,7 +48,7 @@ function initAuth() {
   });
 }
 
-// Fonction pour charger le score depuis la base de données
+// Charger le score de l'utilisateur dans la base de données
 async function chargerScore() {
   const scoreRef = ref(db, `scores/${userId}`);
   const snapshot = await get(scoreRef);
@@ -60,32 +60,10 @@ async function chargerScore() {
   }
 }
 
-// Vérifier si le pseudo existe déjà
-async function pseudoExistant(nom) {
-  const snapshot = await get(query(ref(db, "scores"), orderByChild("username"), equalTo(nom)));
-  return snapshot.exists();
-}
-
-// Enregistrer un nouvel utilisateur
-async function enregistrerUtilisateur(nom, scoreInitial) {
-  if (await pseudoExistant(nom)) {
-    console.error("Pseudo déjà pris !");
-    alert("Ce pseudo est déjà utilisé, choisissez-en un autre.");
-    return false;
-  }
-
-  // Sauvegarde dans la BDD
+// Sauvegarder le score de l'utilisateur dans la base de données
+function sauvegarderScore(username, points) {
   const userRef = ref(db, `scores/${userId}`);
-  await set(userRef, { username: nom, score: scoreInitial });
-  localStorage.setItem("username", nom);
-  console.log("Utilisateur enregistré avec succès !");
-  return true;
-}
-
-// Fonction pour enregistrer un score
-function enregistrerScore(nouveauScore) {
-  const userRef = ref(db, `scores/${userId}`);
-  set(userRef, { username, score: nouveauScore })
+  set(userRef, { username, score: points })
     .then(() => console.log("Score mis à jour avec succès !"))
     .catch((error) => console.error("Erreur lors de l'enregistrement du score :", error));
 }
@@ -101,19 +79,15 @@ function afficherScores() {
     }
     
     const scoresArray = [];
-    // Transformer les données en tableau
     for (const key in scoresData) {
       scoresArray.push(scoresData[key]);
     }
 
-    // Trier par score décroissant
-    scoresArray.sort((a, b) => b.score - a.score);
+    scoresArray.sort((a, b) => b.score - a.score); // Trier par score décroissant
 
-    // Récupérer le tbody pour ajouter les scores
     const scoreTable = document.getElementById("scoreTable").querySelector("tbody");
     scoreTable.innerHTML = ''; // Vider le tableau avant de le remplir
 
-    // Afficher chaque score dans une nouvelle ligne du tableau
     scoresArray.forEach((data, index) => {
       const row = document.createElement('tr');
       row.innerHTML = `
@@ -126,7 +100,7 @@ function afficherScores() {
   });
 }
 
-// Gestion du jeu
+// Fonction pour démarrer le jeu
 (() => {
   let randomNumber;
   let compteur = 0;
@@ -143,7 +117,7 @@ function afficherScores() {
   const tropHautTropBas = document.querySelector(".tropHautTropBas");
   const tentatives = document.querySelector(".tentatives");
 
-  // Connexion utilisateur ou mode invité
+  // Connexion ou mode invité
   loginButton.addEventListener("click", () => {
     username = usernameInput.value.trim() || "Invité"; // Si pas de nom, utilisateur reste "Invité"
     loginDiv.style.display = "none";
@@ -179,12 +153,14 @@ function afficherScores() {
       score = Math.max(100 - compteur * 10, 0); // Calcul du score
       resultat.textContent = `Bravo ${username} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
       tentatives.textContent = `Score gagné : ${score} points.`;
+
+      // Si l'utilisateur n'est pas "Invité", on cumule les scores et on les sauvegarde
       if (username !== "Invité") {
-        // Cumuler le score existant avant de sauvegarder le nouveau score
-        score += (score || 0);
-        sauvegarderScore(username, score);
-        afficherScores();
+        score += (score || 0);  // Cumuler le score existant
+        sauvegarderScore(username, score);  // Sauvegarde dans la base de données
+        afficherScores();  // Affichage des scores dans le tableau
       }
+
       finDeJeu();
     } else if (proposition < randomNumber) {
       tropHautTropBas.textContent = "C'est plus grand !";
@@ -218,14 +194,6 @@ function afficherScores() {
 
   envoyer.addEventListener("click", verifier);
 
-  // Sauvegarder le score d'un utilisateur
-  function sauvegarderScore(username, points) {
-    const userRef = ref(db, `scores/${userId}`);
-    set(userRef, { username, score: points })
-      .then(() => console.log("Score mis à jour avec succès !"))
-      .catch((error) => console.error("Erreur lors de l'enregistrement du score :", error));
-  }
-
-  // Appeler la fonction d'initialisation
+  // Initialiser l'authentification
   initAuth();
 })();
