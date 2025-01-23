@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getDatabase, ref, set, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getDatabase, ref, set, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
 // Config Firebase
@@ -157,13 +157,22 @@ input.addEventListener('keypress', (e) => {
 
 envoyer.addEventListener('click', verifier);
 
-// Sauvegarder le score dans Firebase
+// Sauvegarder le score dans Firebase (en ajoutant les points au score existant)
 async function sauvegarderScore(username, points) {
   const userRef = ref(db, `scores/${userId}`);
-  await set(userRef, {
+  const snapshot = await get(userRef);
+
+  let currentScore = snapshot.exists() ? snapshot.val().score : 0; // Récupère le score actuel de l'utilisateur, sinon 0
+
+  // Ajoute les points au score actuel
+  const newScore = currentScore + points;
+
+  // Mise à jour du score dans la base de données
+  await update(userRef, {
     username,
-    score: points
+    score: newScore
   });
+
   console.log("Score sauvegardé dans la base de données.");
 }
 
