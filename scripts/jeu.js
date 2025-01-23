@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getDatabase, ref, set, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
 // Config Firebase
@@ -18,143 +18,179 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth();
 
-// Gestion locale pour l'utilisateur
-let userId = localStorage.getItem("userId");
-let username = localStorage.getItem("username");
+// Sélection des éléments HTML
+const loginDiv = document.getElementById('login');
+const gameDiv = document.getElementById('game');
+const usernameInput = document.getElementById('username');
+const loginButton = document.getElementById('loginButton');
+const input = document.getElementById('proposition');
+const envoyer = document.getElementById('envoyer');
+const reset = document.getElementById('reset');
+const resultat = document.querySelector('.resultat');
+const tropHautTropBas = document.querySelector('.tropHautTropBas');
+const tentatives = document.querySelector('.tentatives');
+const scoreTable = document.getElementById('scoreTable').querySelector('tbody');
 
-if (!userId) {
-  // Connexion anonyme si l'utilisateur n'est pas enregistré
-  signInAnonymously(auth)
-    .then(() => {
-      console.log("Utilisateur connecté anonymement !");
-      userId = auth.currentUser.uid;
-      localStorage.setItem("userId", userId);
-    })
-    .catch((error) => console.error("Erreur d'authentification :", error));
+// Variables globales pour l'utilisateur, le jeu et la base de données
+let username = null;
+let userId = null;
+let randomNumber;
+let compteur = 0;
+let score = 0;
+let scores = {}; // Tableau des scores pour chaque utilisateur
+
+// Vérifie si l'utilisateur a un cookie de session
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
 }
 
-// Vérifier si le pseudo existe déjà
-async function pseudoExistant(nom) {
-  const snapshot = await get(query(ref(db, "scores"), orderByChild("username"), equalTo(nom)));
-  return snapshot.exists();
+// Si le cookie existe, connecter l'utilisateur automatiquement
+userId = getCookie('userId');
+if (userId) {
+  // Utilisateur déjà connecté via cookie
+  console.log("Utilisateur connecté via cookie :", userId);
+  loginDiv.style.display = 'none';
+  gameDiv.style.display = 'block';
+  startGame();
+} else {
+  // Si pas de cookie, connexion via un pseudo
+  loginButton.addEventListener('click', () => {
+    username = usernameInput.value.trim() || "Invité"; // Si aucun pseudo, on garde "Invité"
+    signInAnonymously(auth)
+      .then(() => {
+        userId = auth.currentUser.uid;
+        document.cookie = `userId=${userId};path=/;max-age=31536000`; // Créer un cookie pour 1 an
+        console.log("Utilisateur connecté anonymement avec ID :", userId);
+        loginDiv.style.display = 'none';
+        gameDiv.style.display = 'block';
+        startGame();
+        enregistrerUtilisateur(username);
+      })
+      .catch((error) => console.error("Erreur d'authentification :", error));
+  });
 }
 
-// Enregistrer un nouvel utilisateur
-async function enregistrerUtilisateur(nom, scoreInitial) {
-  if (await pseudoExistant(nom)) {
-    console.error("Pseudo déjà pris !");
-    alert("Ce pseudo est déjà utilisé, choisissez-en un autre.");
-    return false;
+// Enregistrer un utilisateur dans Firebase (si il n'est pas déjà enregistré)
+async function enregistrerUtilisateur(nom) {
+  const userRef = ref(db, `scores/${userId}`);
+  const snapshot = await get(userRef);
+
+  if (!snapshot.exists()) {
+    // Si l'utilisateur n'est pas encore enregistré dans la base de données
+    await set(userRef, {
+      username: nom,
+      score: 0
+    });
+    console.log("Utilisateur enregistré avec succès !");
+  }
+}
+
+// Démarrer un nouveau jeu
+function startGame() {
+  randomNumber = Math.floor(Math.random() * 100) + 1;
+  compteur = 0;
+  score = 0;
+
+  input.value = '';
+  resultat.textContent = '';
+  tropHautTropBas.textContent = '';
+  tentatives.textContent = '';
+  input.disabled = false;
+  envoyer.disabled = false;
+
+  input.focus();
+}
+
+// Vérification de la proposition
+function verifier() {
+  const proposition = Number(input.value);
+  if (isNaN(proposition) || proposition < 1 || proposition > 100) {
+    tropHautTropBas.textContent = "Veuillez entrer un nombre valide entre 1 et 100.";
+    return;
+  }
+  compteur++;
+
+  if (proposition === randomNumber) {
+    score = Math.max(100 - compteur * 10, 0); // Calcul du score
+    resultat.textContent = `Bravo ${username || "Invité"} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
+    tentatives.textContent = `Score gagné : ${score} points.`;
+    if (username) {
+      sauvegarderScore(username, score);
+      afficherScores();
+    }
+    finDeJeu();
+  } else if (proposition < randomNumber) {
+    tropHautTropBas.textContent = "C'est plus grand !";
+  } else {
+    tropHautTropBas.textContent = "C'est plus petit !";
   }
 
-  // Sauvegarde dans la BDD
-  const userRef = ref(db, `scores/${userId}`);
-  await set(userRef, { username: nom, score: scoreInitial });
-  localStorage.setItem("username", nom);
-  console.log("Utilisateur enregistré avec succès !");
-  return true;
+  tentatives.textContent = `Tentatives : ${compteur}`;
+  input.value = '';
+  input.focus();
+
+  if (compteur === 10 && proposition !== randomNumber) {
+    resultat.textContent = `Perdu ! Le nombre était ${randomNumber}. 😢`;
+    finDeJeu();
+  }
 }
 
-// Fonction pour enregistrer un score
-function enregistrerScore(nouveauScore) {
-  const userRef = ref(db, `scores/${userId}`);
-  set(userRef, { username, score: nouveauScore })
-    .then(() => console.log("Score mis à jour avec succès !"))
-    .catch((error) => console.error("Erreur lors de l'enregistrement du score :", error));
+// Désactiver le jeu
+function finDeJeu() {
+  envoyer.disabled = true;
+  input.disabled = true;
 }
 
-// Afficher les scores dans le tableau HTML
-// Fonction pour afficher les scores
-function afficherScores() {
+// Reset du jeu
+reset.addEventListener('click', startGame);
+
+// Appui sur Enter
+input.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') verifier();
+});
+
+envoyer.addEventListener('click', verifier);
+
+// Sauvegarder le score dans Firebase
+async function sauvegarderScore(username, points) {
+  const userRef = ref(db, `scores/${userId}`);
+  await set(userRef, {
+    username,
+    score: points
+  });
+  console.log("Score sauvegardé dans la base de données.");
+}
+
+// Afficher les scores dans le tableau
+async function afficherScores() {
   const scoresRef = ref(db, "scores");
-  onValue(scoresRef, (snapshot) => {
-    const scoresData = snapshot.val();
-    if (!scoresData) {
-      console.log("Aucun score trouvé.");
-      return;
-    }
-    
-    const scoresArray = [];
-    // Transformer les données en tableau
-    for (const key in scoresData) {
-      scoresArray.push(scoresData[key]);
-    }
+  const snapshot = await get(scoresRef);
+  const scoresData = snapshot.val();
+  if (!scoresData) {
+    console.log("Aucun score trouvé.");
+    return;
+  }
 
-    // Trier par score décroissant
-    scoresArray.sort((a, b) => b.score - a.score);
+  const scoresArray = [];
+  for (const key in scoresData) {
+    scoresArray.push(scoresData[key]);
+  }
 
-    // Récupérer le tbody pour ajouter les scores
-    const scoreTable = document.getElementById("scoreTable").querySelector("tbody");
-    scoreTable.innerHTML = ''; // Vider le tableau avant de le remplir
+  scoresArray.sort((a, b) => b.score - a.score);
 
-    // Afficher chaque score dans une nouvelle ligne du tableau
-    scoresArray.forEach((data, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${data.username}</td>
-        <td>${data.score}</td>
-      `;
-      scoreTable.appendChild(row);
-    });
+  // Récupérer le tbody pour ajouter les scores
+  scoreTable.innerHTML = ''; // Vider le tableau avant de le remplir
+
+  scoresArray.forEach((data, index) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${data.username}</td>
+      <td>${data.score}</td>
+    `;
+    scoreTable.appendChild(row);
   });
 }
-
-// Gestion du jeu
-(() => {
-  const loginDiv = document.getElementById("login");
-  const gameDiv = document.getElementById("game");
-  const usernameInput = document.getElementById("username");
-  const loginButton = document.getElementById("loginButton");
-  const propositionInput = document.getElementById("proposition");
-  const envoyerButton = document.getElementById("envoyer");
-
-  // Gestion de la connexion
-  loginButton.addEventListener("click", async () => {
-    const nom = usernameInput.value.trim();
-    if (!nom) {
-      alert("Veuillez entrer un pseudo !");
-      return;
-    }
-
-    const success = await enregistrerUtilisateur(nom, 0);
-    if (success) {
-      username = nom;
-      localStorage.setItem("username", username);
-
-      // Masquer l'écran de connexion et afficher l'écran de jeu
-      loginDiv.style.display = "none";
-      gameDiv.style.display = "block";
-
-      // Démarrer le jeu
-      startGame();
-    }
-  });
-
-  // Fonction pour démarrer le jeu
-  function startGame() {
-    console.log("Nouvelle partie pour :", username);
-    afficherScores(); // Afficher les scores
-    propositionInput.disabled = false; // Activer l'input pour entrer le nombre
-
-    // Ajout du gestionnaire pour la soumission du nombre
-    envoyerButton.addEventListener("click", () => {
-      const proposition = parseInt(propositionInput.value, 10);
-      if (isNaN(proposition)) {
-        alert("Veuillez entrer un nombre valide !");
-        return;
-      }
-
-      // Exemple de logique de jeu (à remplacer par la logique de deviner le nombre)
-      const numberToGuess = 50; // C'est un exemple, à remplacer par un nombre aléatoire
-      if (proposition === numberToGuess) {
-        alert("Bravo, vous avez trouvé le bon nombre !");
-        enregistrerScore(100); // Exemple de mise à jour du score
-      } else if (proposition < numberToGuess) {
-        alert("Trop bas !");
-      } else {
-        alert("Trop haut !");
-      }
-    });
-  }
-})();
