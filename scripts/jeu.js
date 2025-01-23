@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
 import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
-// Ta configuration Firebase
+// Configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAEuk1wol1lNcSrzEGqRu31kCuoGpD9PTQ",
   authDomain: "jeu-hasard.firebaseapp.com",
@@ -16,32 +17,107 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// Authentification Firebase
+const auth = getAuth();
+let userId = null;
+signInAnonymously(auth)
+  .then(() => {
+    console.log("Utilisateur connecté anonymement !");
+    userId = auth.currentUser.uid; // On récupère l'ID utilisateur
+  })
+  .catch((error) => {
+    console.error("Erreur d'authentification :", error);
+  });
 
-(() => {
-  let randomNumber;
-  let compteur = 0;
-  let username = null;
-  let score = 0;
-  const scores = {}; // Tableau des scores pour chaque utilisateur
+// Références Firebase
+const scoresRef = ref(db, "scores");
 
-  // Sélection des éléments HTML
-  const loginDiv = document.getElementById('login');
-  const gameDiv = document.getElementById('game');
-  const usernameInput = document.getElementById('username');
-  const loginButton = document.getElementById('loginButton');
+// Élément HTML
+const loginDiv = document.getElementById('login');
+const gameDiv = document.getElementById('game');
+const usernameInput = document.getElementById('username');
+const loginButton = document.getElementById('loginButton');
+const input = document.getElementById('proposition');
+const envoyer = document.getElementById('envoyer');
+const reset = document.getElementById('reset');
+const resultat = document.querySelector('.resultat');
+const tropHautTropBas = document.querySelector('.tropHautTropBas');
+const tentatives = document.querySelector('.tentatives');
+const scoreTable = document.getElementById('scoreTable').querySelector('tbody');
 
-  const input = document.getElementById('proposition');
-  const envoyer = document.getElementById('envoyer');
-  const reset = document.getElementById('reset');
-  const resultat = document.querySelector('.resultat');
-  const tropHautTropBas = document.querySelector('.tropHautTropBas');
-  const tentatives = document.querySelector('.tentatives');
-  const scoreTable = document.getElementById('scoreTable').querySelector('tbody');
-  const scoresRef = ref(db, "scores");
+let randomNumber, compteur, username, score;
 
+// Connexion utilisateur
+loginButton.addEventListener('click', () => {
+  username = usernameInput.value.trim() || "Invité"; // Par défaut, Invité
+  loginDiv.style.display = 'none';
+  gameDiv.style.display = 'block';
+  startGame();
+});
 
-  function enregistrerScore(userId, username, score) {
-  // Ajoute un score pour le joueur
+// Démarrer un nouveau jeu
+function startGame() {
+  randomNumber = Math.floor(Math.random() * 100) + 1;
+  compteur = 0;
+  score = 0;
+
+  input.value = '';
+  resultat.textContent = '';
+  tropHautTropBas.textContent = '';
+  tentatives.textContent = '';
+  input.disabled = false;
+  envoyer.disabled = false;
+
+  input.focus();
+}
+
+// Vérifier la proposition
+function verifier() {
+  const proposition = Number(input.value);
+  if (isNaN(proposition) || proposition < 1 || proposition > 100) {
+    tropHautTropBas.textContent = "Veuillez entrer un nombre valide entre 1 et 100.";
+    return;
+  }
+  compteur++;
+
+  if (proposition === randomNumber) {
+    score = Math.max(100 - compteur * 10, 0); // Calcul du score
+    resultat.textContent = `Bravo ${username} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
+    tentatives.textContent = `Score gagné : ${score} points.`;
+    enregistrerScore(userId, username, score); // Enregistrer le score dans Firebase
+    afficherScores(); // Afficher le classement
+    finDeJeu();
+  } else if (proposition < randomNumber) {
+    tropHautTropBas.textContent = "C'est plus grand !";
+  } else {
+    tropHautTropBas.textContent = "C'est plus petit !";
+  }
+
+  tentatives.textContent = `Tentatives : ${compteur}`;
+  input.value = '';
+  input.focus();
+
+  if (compteur === 10 && proposition !== randomNumber) {
+    resultat.textContent = `Perdu ! Le nombre était ${randomNumber}. 😢`;
+    finDeJeu();
+  }
+}
+
+// Désactiver le jeu
+function finDeJeu() {
+  envoyer.disabled = true;
+  input.disabled = true;
+}
+
+// Réinitialiser le jeu
+reset.addEventListener('click', startGame);
+input.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') verifier();
+});
+envoyer.addEventListener('click', verifier);
+
+// Enregistrer un score dans Firebase
+function enregistrerScore(userId, username, score) {
   const nouveauScoreRef = push(scoresRef);
   set(nouveauScoreRef, {
     userId: userId,
@@ -56,142 +132,33 @@ const db = getDatabase(app);
     });
 }
 
+// Afficher les scores
 function afficherScores() {
   onValue(scoresRef, (snapshot) => {
     const scoresData = snapshot.val();
     const scoresArray = [];
 
-    // Transforme les données en tableau pour pouvoir trier
+    // Convertir les données Firebase en tableau
     for (let key in scoresData) {
       scoresArray.push(scoresData[key]);
     }
 
-    // Trie les scores du plus élevé au plus bas
-    scoresArray.sort((a, b) => a.score - b.score);
+    // Trier par score décroissant
+    scoresArray.sort((a, b) => b.score - a.score);
 
-    // Affiche les scores dans la console (ou ajoute du HTML)
-    console.log("Classement des scores :");
+    // Afficher dans le tableau HTML
+    scoreTable.innerHTML = '';
     scoresArray.forEach((score, index) => {
-      console.log(`${index + 1}. ${score.username} : ${score.score}`);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${score.username}</td>
+        <td>${score.score}</td>
+      `;
+      scoreTable.appendChild(row);
     });
   });
 }
 
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
-
-const auth = getAuth();
-signInAnonymously(auth)
-  .then(() => {
-    console.log("Utilisateur connecté anonymement !");
-  })
-  .catch((error) => {
-    console.error("Erreur d'authentification :", error);
-  });
-
-  
-// Appelle cette fonction pour afficher les scores
+// Afficher le classement dès le chargement
 afficherScores();
-
-  // Connexion utilisateur ou mode invité
-  loginButton.addEventListener('click', () => {
-    username = usernameInput.value.trim() || null; // Si pas de nom, utilisateur reste null
-    loginDiv.style.display = 'none';
-    gameDiv.style.display = 'block';
-    startGame();
-  });
-
-  // Démarrer un nouveau jeu
-  function startGame() {
-    randomNumber = Math.floor(Math.random() * 100) + 1;
-    compteur = 0;
-    score = 0;
-
-    input.value = '';
-    resultat.textContent = '';
-    tropHautTropBas.textContent = '';
-    tentatives.textContent = '';
-    input.disabled = false;
-    envoyer.disabled = false;
-
-    input.focus();
-  }
-
-  // Vérification de la proposition
-  function verifier() {
-    const proposition = Number(input.value);
-    if (isNaN(proposition) || proposition < 1 || proposition > 100) {
-      tropHautTropBas.textContent = "Veuillez entrer un nombre valide entre 1 et 100.";
-      return;
-    }
-    compteur++;
-
-    if (proposition === randomNumber) {
-      score = Math.max(100 - compteur * 10, 0); // Calcul du score
-      resultat.textContent = `Bravo ${username || "Invité"} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
-      tentatives.textContent = `Score gagné : ${score} points.`;
-      if (username) {
-        sauvegarderScore(username, score);
-        afficherScores();
-      }
-      finDeJeu();
-    } else if (proposition < randomNumber) {
-      tropHautTropBas.textContent = "C'est plus grand !";
-    } else {
-      tropHautTropBas.textContent = "C'est plus petit !";
-    }
-
-    tentatives.textContent = `Tentatives : ${compteur}`;
-    input.value = '';
-    input.focus();
-
-    if (compteur === 10 && proposition !== randomNumber) {
-      resultat.textContent = `Perdu ! Le nombre était ${randomNumber}. 😢`;
-      finDeJeu();
-    }
-  }
-
-  // Désactiver le jeu
-  function finDeJeu() {
-    envoyer.disabled = true;
-    input.disabled = true;
-  }
-
-  // Reset du jeu
-  reset.addEventListener('click', startGame);
-
-  // Appui sur Enter
-  input.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') verifier();
-  });
-
-  envoyer.addEventListener('click', verifier);
-
-  // Sauvegarder le score d'un utilisateur
-  function sauvegarderScore(username, points) {
-    if (!scores[username]) {
-      scores[username] = 0; // Nouveau joueur
-    }
-    scores[username] += points; // Ajout des points au total
-  }
-
-  // Afficher les scores dans le tableau
-  function afficherScores() {
-    // Vider le tableau
-    scoreTable.innerHTML = '';
-
-    // Transformer l'objet en tableau, trier par score décroissant
-    const classement = Object.entries(scores)
-      .sort(([, scoreA], [, scoreB]) => scoreB - scoreA);
-
-    // Ajouter les scores au tableau HTML
-    classement.forEach(([user, totalScore], index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${user}</td>
-        <td>${totalScore}</td>
-      `;
-      scoreTable.appendChild(row);
-    });
-  }
-})();
