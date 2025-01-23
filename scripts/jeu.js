@@ -85,7 +85,7 @@ async function enregistrerUtilisateur(nom) {
     // Si l'utilisateur n'est pas encore enregistré dans la base de données
     await set(userRef, {
       username: nom,
-      score: 0
+      score: 0 // Début à 0 pour un nouvel utilisateur
     });
     console.log("Utilisateur enregistré avec succès !");
   }
@@ -108,7 +108,7 @@ function startGame() {
 }
 
 // Vérification de la proposition
-function verifier() {
+async function verifier() {
   const proposition = Number(input.value);
   if (isNaN(proposition) || proposition < 1 || proposition > 100) {
     tropHautTropBas.textContent = "Veuillez entrer un nombre valide entre 1 et 100.";
@@ -117,12 +117,13 @@ function verifier() {
   compteur++;
 
   if (proposition === randomNumber) {
+    // Calcul du score basé sur le nombre de tentatives
     score = Math.max(100 - compteur * 10, 0); // Calcul du score
     resultat.textContent = `Bravo ${username || "Invité"} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
     tentatives.textContent = `Score gagné : ${score} points.`;
     if (username) {
-      sauvegarderScore(username, score);
-      afficherScores();
+      await sauvegarderScore(username, score); // Enregistrer le score après la victoire
+      afficherScores(); // Mettre à jour le tableau des scores
     }
     finDeJeu();
   } else if (proposition < randomNumber) {
@@ -162,18 +163,17 @@ async function sauvegarderScore(username, points) {
   const userRef = ref(db, `scores/${userId}`);
   const snapshot = await get(userRef);
 
-  let currentScore = snapshot.exists() ? snapshot.val().score : 0; // Récupère le score actuel de l'utilisateur, sinon 0
+  if (snapshot.exists()) {
+    // Récupère le score actuel de l'utilisateur
+    let currentScore = snapshot.val().score || 0;
+    const newScore = currentScore + points; // Ajoute les nouveaux points
 
-  // Ajoute les points au score actuel
-  const newScore = currentScore + points;
-
-  // Mise à jour du score dans la base de données
-  await update(userRef, {
-    username,
-    score: newScore
-  });
-
-  console.log("Score sauvegardé dans la base de données.");
+    // Met à jour le score dans la base de données
+    await update(userRef, { score: newScore });
+    console.log("Score mis à jour dans la base de données.");
+  } else {
+    console.log("Utilisateur non trouvé dans la base de données.");
+  }
 }
 
 // Afficher les scores dans le tableau
@@ -191,11 +191,13 @@ async function afficherScores() {
     scoresArray.push(scoresData[key]);
   }
 
+  // Trier les scores par ordre décroissant
   scoresArray.sort((a, b) => b.score - a.score);
 
   // Vider le tableau avant de le remplir
   scoreTable.innerHTML = '';
 
+  // Ajouter les scores triés au tableau HTML
   scoresArray.forEach((data, index) => {
     const row = document.createElement('tr');
     row.innerHTML = `
