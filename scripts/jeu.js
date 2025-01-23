@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
 // Config Firebase
@@ -21,6 +21,7 @@ const auth = getAuth();
 // Gestion locale pour l'utilisateur
 let userId = localStorage.getItem("userId");
 let username = localStorage.getItem("username");
+let score = 0;  // Initialisation du score
 
 // Fonction pour récupérer l'utilisateur anonyme ou authentifié
 function initAuth() {
@@ -30,6 +31,7 @@ function initAuth() {
       userId = user.uid;
       localStorage.setItem("userId", userId);
       console.log("Utilisateur connecté :", userId);
+      chargerScore();  // Charger le score de l'utilisateur si disponible
     } else {
       // Si l'utilisateur n'est pas connecté, procéder à la connexion anonyme
       signInAnonymously(auth)
@@ -37,12 +39,25 @@ function initAuth() {
           console.log("Utilisateur connecté anonymement !");
           userId = auth.currentUser.uid;
           localStorage.setItem("userId", userId);
+          chargerScore();  // Charger le score de l'utilisateur si disponible
         })
         .catch((error) => {
           console.error("Erreur d'authentification :", error);
         });
     }
   });
+}
+
+// Fonction pour charger le score depuis la base de données
+async function chargerScore() {
+  const scoreRef = ref(db, `scores/${userId}`);
+  const snapshot = await get(scoreRef);
+  if (snapshot.exists()) {
+    score = snapshot.val().score;  // Charger le score existant
+    console.log("Score chargé depuis la base de données :", score);
+  } else {
+    console.log("Aucun score trouvé, création d'un nouveau score.");
+  }
 }
 
 // Vérifier si le pseudo existe déjà
@@ -76,7 +91,6 @@ function enregistrerScore(nouveauScore) {
 }
 
 // Afficher les scores dans le tableau HTML
-// Fonction pour afficher les scores
 function afficherScores() {
   const scoresRef = ref(db, "scores");
   onValue(scoresRef, (snapshot) => {
@@ -116,7 +130,6 @@ function afficherScores() {
 (() => {
   let randomNumber;
   let compteur = 0;
-  let score = 0;
 
   const loginDiv = document.getElementById("login");
   const gameDiv = document.getElementById("game");
@@ -142,7 +155,6 @@ function afficherScores() {
   function startGame() {
     randomNumber = Math.floor(Math.random() * 100) + 1;
     compteur = 0;
-    score = 0;
 
     input.value = "";
     resultat.textContent = "";
@@ -168,6 +180,8 @@ function afficherScores() {
       resultat.textContent = `Bravo ${username} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
       tentatives.textContent = `Score gagné : ${score} points.`;
       if (username !== "Invité") {
+        // Cumuler le score existant avant de sauvegarder le nouveau score
+        score += (score || 0);
         sauvegarderScore(username, score);
         afficherScores();
       }
@@ -208,14 +222,10 @@ function afficherScores() {
   function sauvegarderScore(username, points) {
     const userRef = ref(db, `scores/${userId}`);
     set(userRef, { username, score: points })
-      .then(() => {
-        console.log("Score mis à jour avec succès !");
-      })
-      .catch((error) => {
-        console.error("Erreur lors de l'enregistrement du score :", error);
-      });
+      .then(() => console.log("Score mis à jour avec succès !"))
+      .catch((error) => console.error("Erreur lors de l'enregistrement du score :", error));
   }
 
-  // Appeler la fonction d'initialisation de l'authentification
+  // Appeler la fonction d'initialisation
   initAuth();
 })();
