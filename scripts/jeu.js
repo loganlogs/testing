@@ -106,6 +106,8 @@ function afficherScores() {
   const gameDiv = document.getElementById("game");
   const usernameInput = document.getElementById("username");
   const loginButton = document.getElementById("loginButton");
+  const propositionInput = document.getElementById("proposition");
+  const envoyerButton = document.getElementById("envoyer");
 
   // Gestion de la connexion
   loginButton.addEventListener("click", async () => {
@@ -118,15 +120,41 @@ function afficherScores() {
     const success = await enregistrerUtilisateur(nom, 0);
     if (success) {
       username = nom;
+      localStorage.setItem("username", username);
+
+      // Masquer l'écran de connexion et afficher l'écran de jeu
       loginDiv.style.display = "none";
       gameDiv.style.display = "block";
+
+      // Démarrer le jeu
       startGame();
     }
   });
 
-  // Début d'une nouvelle partie
+  // Fonction pour démarrer le jeu
   function startGame() {
     console.log("Nouvelle partie pour :", username);
-    afficherScores(); // Appelle la fonction pour afficher les scores au démarrage du jeu
+    afficherScores(); // Afficher les scores
+    propositionInput.disabled = false; // Activer l'input pour entrer le nombre
+
+    // Ajout du gestionnaire pour la soumission du nombre
+    envoyerButton.addEventListener("click", () => {
+      const proposition = parseInt(propositionInput.value, 10);
+      if (isNaN(proposition)) {
+        alert("Veuillez entrer un nombre valide !");
+        return;
+      }
+
+      // Exemple de logique de jeu (à remplacer par la logique de deviner le nombre)
+      const numberToGuess = 50; // C'est un exemple, à remplacer par un nombre aléatoire
+      if (proposition === numberToGuess) {
+        alert("Bravo, vous avez trouvé le bon nombre !");
+        enregistrerScore(100); // Exemple de mise à jour du score
+      } else if (proposition < numberToGuess) {
+        alert("Trop bas !");
+      } else {
+        alert("Trop haut !");
+      }
+    });
   }
 })();
