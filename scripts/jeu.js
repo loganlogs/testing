@@ -37,6 +37,8 @@ const db = getDatabase(app);
   const tropHautTropBas = document.querySelector('.tropHautTropBas');
   const tentatives = document.querySelector('.tentatives');
   const scoreTable = document.getElementById('scoreTable').querySelector('tbody');
+  const scoresRef = ref(db, "scores");
+
 
   // Connexion utilisateur ou mode invité
   loginButton.addEventListener('click', () => {
