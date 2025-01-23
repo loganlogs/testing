@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getDatabase, ref, set, push, onValue, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
 
-// Configuration Firebase
+// Config Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAEuk1wol1lNcSrzEGqRu31kCuoGpD9PTQ",
   authDomain: "jeu-hasard.firebaseapp.com",
@@ -16,149 +16,103 @@ const firebaseConfig = {
 // Initialise Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
-// Authentification Firebase
 const auth = getAuth();
-let userId = null;
-signInAnonymously(auth)
-  .then(() => {
-    console.log("Utilisateur connecté anonymement !");
-    userId = auth.currentUser.uid; // On récupère l'ID utilisateur
-  })
-  .catch((error) => {
-    console.error("Erreur d'authentification :", error);
-  });
 
-// Références Firebase
-const scoresRef = ref(db, "scores");
+// Gestion locale pour l'utilisateur
+let userId = localStorage.getItem("userId");
+let username = localStorage.getItem("username");
 
-// Élément HTML
-const loginDiv = document.getElementById('login');
-const gameDiv = document.getElementById('game');
-const usernameInput = document.getElementById('username');
-const loginButton = document.getElementById('loginButton');
-const input = document.getElementById('proposition');
-const envoyer = document.getElementById('envoyer');
-const reset = document.getElementById('reset');
-const resultat = document.querySelector('.resultat');
-const tropHautTropBas = document.querySelector('.tropHautTropBas');
-const tentatives = document.querySelector('.tentatives');
-const scoreTable = document.getElementById('scoreTable').querySelector('tbody');
-
-let randomNumber, compteur, username, score;
-
-// Connexion utilisateur
-loginButton.addEventListener('click', () => {
-  username = usernameInput.value.trim() || "Invité"; // Par défaut, Invité
-  loginDiv.style.display = 'none';
-  gameDiv.style.display = 'block';
-  startGame();
-});
-
-// Démarrer un nouveau jeu
-function startGame() {
-  randomNumber = Math.floor(Math.random() * 100) + 1;
-  compteur = 0;
-  score = 0;
-
-  input.value = '';
-  resultat.textContent = '';
-  tropHautTropBas.textContent = '';
-  tentatives.textContent = '';
-  input.disabled = false;
-  envoyer.disabled = false;
-
-  input.focus();
-}
-
-// Vérifier la proposition
-function verifier() {
-  const proposition = Number(input.value);
-  if (isNaN(proposition) || proposition < 1 || proposition > 100) {
-    tropHautTropBas.textContent = "Veuillez entrer un nombre valide entre 1 et 100.";
-    return;
-  }
-  compteur++;
-
-  if (proposition === randomNumber) {
-    score = Math.max(100 - compteur * 10, 0); // Calcul du score
-    resultat.textContent = `Bravo ${username} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
-    tentatives.textContent = `Score gagné : ${score} points.`;
-    enregistrerScore(userId, username, score); // Enregistrer le score dans Firebase
-    afficherScores(); // Afficher le classement
-    finDeJeu();
-  } else if (proposition < randomNumber) {
-    tropHautTropBas.textContent = "C'est plus grand !";
-  } else {
-    tropHautTropBas.textContent = "C'est plus petit !";
-  }
-
-  tentatives.textContent = `Tentatives : ${compteur}`;
-  input.value = '';
-  input.focus();
-
-  if (compteur === 10 && proposition !== randomNumber) {
-    resultat.textContent = `Perdu ! Le nombre était ${randomNumber}. 😢`;
-    finDeJeu();
-  }
-}
-
-// Désactiver le jeu
-function finDeJeu() {
-  envoyer.disabled = true;
-  input.disabled = true;
-}
-
-// Réinitialiser le jeu
-reset.addEventListener('click', startGame);
-input.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') verifier();
-});
-envoyer.addEventListener('click', verifier);
-
-// Enregistrer un score dans Firebase
-function enregistrerScore(userId, username, score) {
-  const nouveauScoreRef = push(scoresRef);
-  set(nouveauScoreRef, {
-    userId: userId,
-    username: username,
-    score: score
-  })
+if (!userId) {
+  // Connexion anonyme si l'utilisateur n'est pas enregistré
+  signInAnonymously(auth)
     .then(() => {
-      console.log("Score enregistré avec succès !");
+      console.log("Utilisateur connecté anonymement !");
+      userId = auth.currentUser.uid;
+      localStorage.setItem("userId", userId);
     })
-    .catch((error) => {
-      console.error("Erreur lors de l'enregistrement du score :", error);
-    });
+    .catch((error) => console.error("Erreur d'authentification :", error));
+}
+
+// Vérifier si le pseudo existe déjà
+async function pseudoExistant(nom) {
+  const snapshot = await get(query(ref(db, "scores"), orderByChild("username"), equalTo(nom)));
+  return snapshot.exists();
+}
+
+// Enregistrer un nouvel utilisateur
+async function enregistrerUtilisateur(nom, scoreInitial) {
+  if (await pseudoExistant(nom)) {
+    console.error("Pseudo déjà pris !");
+    alert("Ce pseudo est déjà utilisé, choisissez-en un autre.");
+    return false;
+  }
+
+  // Sauvegarde dans la BDD
+  const userRef = ref(db, `scores/${userId}`);
+  await set(userRef, { username: nom, score: scoreInitial });
+  localStorage.setItem("username", nom);
+  console.log("Utilisateur enregistré avec succès !");
+  return true;
+}
+
+// Fonction pour enregistrer un score
+function enregistrerScore(nouveauScore) {
+  const userRef = ref(db, `scores/${userId}`);
+  set(userRef, { username, score: nouveauScore })
+    .then(() => console.log("Score mis à jour avec succès !"))
+    .catch((error) => console.error("Erreur lors de l'enregistrement du score :", error));
 }
 
 // Afficher les scores
 function afficherScores() {
+  const scoresRef = ref(db, "scores");
   onValue(scoresRef, (snapshot) => {
     const scoresData = snapshot.val();
     const scoresArray = [];
 
-    // Convertir les données Firebase en tableau
-    for (let key in scoresData) {
+    // Transformer les données en tableau
+    for (const key in scoresData) {
       scoresArray.push(scoresData[key]);
     }
 
     // Trier par score décroissant
     scoresArray.sort((a, b) => b.score - a.score);
 
-    // Afficher dans le tableau HTML
-    scoreTable.innerHTML = '';
-    scoresArray.forEach((score, index) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${score.username}</td>
-        <td>${score.score}</td>
-      `;
-      scoreTable.appendChild(row);
+    // Afficher les scores dans la console
+    console.log("Classement des scores :");
+    scoresArray.forEach((data, index) => {
+      console.log(`${index + 1}. ${data.username} : ${data.score}`);
     });
   });
 }
 
-// Afficher le classement dès le chargement
-afficherScores();
+// Gestion du jeu
+(() => {
+  const loginDiv = document.getElementById("login");
+  const gameDiv = document.getElementById("game");
+  const usernameInput = document.getElementById("username");
+  const loginButton = document.getElementById("loginButton");
+
+  // Gestion de la connexion
+  loginButton.addEventListener("click", async () => {
+    const nom = usernameInput.value.trim();
+    if (!nom) {
+      alert("Veuillez entrer un pseudo !");
+      return;
+    }
+
+    const success = await enregistrerUtilisateur(nom, 0);
+    if (success) {
+      username = nom;
+      loginDiv.style.display = "none";
+      gameDiv.style.display = "block";
+      startGame();
+    }
+  });
+
+  // Début d'une nouvelle partie
+  function startGame() {
+    console.log("Nouvelle partie pour :", username);
+    afficherScores();
+  }
+})();
