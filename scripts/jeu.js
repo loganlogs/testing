@@ -55,6 +55,8 @@ if (userId) {
   loginDiv.style.display = 'none';
   gameDiv.style.display = 'block';
   startGame();
+  // Afficher les scores depuis la base de données
+  afficherScores();
 } else {
   // Si pas de cookie, connexion via un pseudo
   loginButton.addEventListener('click', () => {
@@ -68,6 +70,7 @@ if (userId) {
         gameDiv.style.display = 'block';
         startGame();
         enregistrerUtilisateur(username);
+        afficherScores(); // Afficher les scores après l'inscription
       })
       .catch((error) => console.error("Erreur d'authentification :", error));
   });
@@ -181,8 +184,8 @@ async function afficherScores() {
 
   scoresArray.sort((a, b) => b.score - a.score);
 
-  // Récupérer le tbody pour ajouter les scores
-  scoreTable.innerHTML = ''; // Vider le tableau avant de le remplir
+  // Vider le tableau avant de le remplir
+  scoreTable.innerHTML = '';
 
   scoresArray.forEach((data, index) => {
     const row = document.createElement('tr');
