@@ -40,6 +40,23 @@ const db = getDatabase(app);
   const scoresRef = ref(db, "scores");
 
 
+  function enregistrerScore(userId, username, score) {
+  // Ajoute un score pour le joueur
+  const nouveauScoreRef = push(scoresRef);
+  set(nouveauScoreRef, {
+    userId: userId,
+    username: username,
+    score: score
+  })
+    .then(() => {
+      console.log("Score enregistré avec succès !");
+    })
+    .catch((error) => {
+      console.error("Erreur lors de l'enregistrement du score :", error);
+    });
+}
+
+
   // Connexion utilisateur ou mode invité
   loginButton.addEventListener('click', () => {
     username = usernameInput.value.trim() || null; // Si pas de nom, utilisateur reste null
