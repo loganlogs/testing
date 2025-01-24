@@ -5,42 +5,25 @@
   box-sizing: border-box;
 }
 
-/* Corps de page */
 body {
   font-family: 'Share Tech Mono', monospace;
-  background: radial-gradient(circle, #1a1a1a, #0a0a0a);
-  color: #8aff80;
+  background: radial-gradient(circle, #1a1a1a, #0a0a0a); /* Fond sombre doux */
+  color: #8aff80; /* Vert clair, pour un contraste plus doux */
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Change la position pour permettre le scroll */
-  min-height: 100vh; /* Minimum hauteur 100vh */
-  overflow-y: auto; /* Permet de faire défiler la page */
+  justify-content: center;
+  height: 100vh;
+  overflow: hidden;
   padding: 20px;
-  scrollbar-color: #4CAF50 #222222;
-  scrollbar-width: thin;
+  text-align: center;
 }
 
-body::-webkit-scrollbar {
-  width: 10px;
-}
-
-body::-webkit-scrollbar-thumb {
-  background-color: #4CAF50;
-  border-radius: 10px;
-}
-
-body::-webkit-scrollbar-track {
-  background-color: #222222;
-  border-radius: 10px;
-}
-
-/* Titre principal */
 h1 {
   font-size: 3rem;
   margin-bottom: 20px;
-  color: #8aff80;
-  text-shadow: 0 0 10px #00ff00, 0 0 20px #8aff80;
+  color: #8aff80; /* Couleur vert clair */
+  text-shadow: 0 0 10px #00ff00, 0 0 20px #8aff80; /* Lumière verte douce */
   animation: glow 2s infinite alternate;
 }
 
@@ -56,92 +39,87 @@ h1 {
 /* Style des paragraphes */
 p, .resultat, .tropHautTropBas {
   font-size: 1.2rem;
-  color: #8aff80;
+  color: #8aff80; /* Texte en vert clair */
   text-align: center;
   margin: 10px 0;
   text-shadow: 0 0 5px #00ff00, 0 0 10px #8aff80;
 }
 
 /* Connexion et formulaire du jeu */
-#login {
+#login, #game {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%; /* Prendre toute la largeur disponible */
+  max-width: 500px; /* Limite de largeur */
+  text-align: center; /* Centre le texte dans ces sections */
 }
 
 input[type="text"], input[type="number"], button {
+  display: block;
+  margin: 10px auto; /* Centrer avec une marge automatique */
   padding: 10px;
   font-size: 1rem;
   border-radius: 10px;
-  border: 2px solid #8aff80;
-  background: #2a2a2a;
-  color: #8aff80;
+  border: 2px solid #8aff80; /* Bordure vert clair */
+  background: #2a2a2a; /* Fond sombre mais doux */
+  color: #8aff80; /* Texte en vert clair */
   box-shadow: 0 0 5px #00ff00;
-  margin: 10px;
   outline: none;
   transition: 0.3s ease;
+  width: 100%; /* Pour que les éléments prennent toute la largeur disponible */
+  max-width: 300px; /* Limite de largeur */
 }
 
-input[type="text"]:focus, input[type="number"]:focus {
+input[type="submit"]:focus, input[type="number"]:focus {
   box-shadow: 0 0 10px #00ff00;
 }
 
-button:hover {
-  background-color: #1a1a1a;
+button:hover, input[type="submit"]:hover {
+  background-color: #1a1a1a; /* Fond plus foncé au survol */
   color: #8aff80;
   border: 2px solid #00ff00;
   box-shadow: 0 0 10px #00ff00;
 }
 
-button#reset, button#envoyer {
-  display: block;
-  background-color: #8aff80;
-  color: #000;
-  font-weight: bold;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 5px;
-  border: none;
-  padding: 10px 20px;
-  box-shadow: 0 0 10px #00ff00;
-  transition: 0.3s;
-}
-
-button#reset:hover, button#envoyer:hover {
-  background-color: #1a1a1a;
-  color: #8aff80;
-  border: 2px solid #00ff00;
-  box-shadow: 0 0 10px #00ff00;
-}
-
-#game {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
+/* Style de la table des scores */
 #scoreTableContainer {
   width: 100%;
   max-height: 400px;
   overflow-y: auto;
-  border: 2px solid #4CAF50;
+  border: 2px solid #4CAF50; /* Bordure verte */
   border-radius: 10px;
   margin-top: 20px;
-  padding: 15px;
 }
 
+/* Style de la scrollbar */
+#scoreTableContainer::-webkit-scrollbar {
+  width: 12px;
+}
+
+#scoreTableContainer::-webkit-scrollbar-thumb {
+  background-color: #4CAF50;
+  border-radius: 10px;
+}
+
+#scoreTableContainer::-webkit-scrollbar-track {
+  background-color: #222222; /* Fond plus sombre pour la track */
+  border-radius: 10px;
+}
+
+/* Tableaux des scores */
 #scoreTable {
   width: 100%;
   border-collapse: collapse;
-  background: #2a2a2a;
+  margin-top: 10px;
+  background: #2a2a2a; /* Fond sombre pour la table */
 }
 
 #scoreTable th, #scoreTable td {
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #333333;
+  border-bottom: 1px solid #333333; /* Légère séparation entre les lignes */
 }
 
 #scoreTable th {
@@ -150,11 +128,11 @@ button#reset:hover, button#envoyer:hover {
 }
 
 #scoreTable tr:nth-child(even) {
-  background-color: #3a3a3a;
+  background-color: #3a3a3a; /* Fond légèrement plus clair pour les lignes paires */
 }
 
 #scoreTable tr:hover {
-  background-color: #5a5a5a;
+  background-color: #5a5a5a; /* Survol de ligne avec un fond un peu plus clair */
 }
 
 /* Animation pour l'affichage des résultats */
@@ -173,29 +151,4 @@ button#reset:hover, button#envoyer:hover {
   margin: 5px 0;
   font-size: 1rem;
   animation: fadeIn 1s ease-in-out;
-}
-
-/* Pour les écrans plus petits */
-@media screen and (max-width: 768px) {
-  h1 {
-    font-size: 2rem;
-  }
-
-  p, .resultat, .tropHautTropBas {
-    font-size: 1rem;
-  }
-
-  input[type="text"], input[type="number"], button {
-    font-size: 0.9rem;
-    padding: 8px;
-    margin: 8px;
-  }
-
-  #scoreTableContainer {
-    max-height: 60vh;
-  }
-
-  #scoreTable th, #scoreTable td {
-    padding: 8px;
-  }
 }
