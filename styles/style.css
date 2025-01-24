@@ -1,105 +1,156 @@
-/* Corps de page */
-body {
+/* Reset et style global */
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+/* Corps de page */
+body {
   font-family: 'Share Tech Mono', monospace;
-  background: radial-gradient(circle, #001f3f, #000);
-  color: #0f0;
+  background: radial-gradient(circle, #1a1a1a, #0a0a0a); /* Fond sombre doux */
+  color: #8aff80; /* Vert clair, pour un contraste plus doux */
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  min-height: 100vh;
-  overflow-y: scroll;
+  justify-content: center;
+  height: 100vh;
+  overflow: auto; /* Permet d'avoir une scrollbar si nécessaire */
+  padding: 20px;
+  scrollbar-color: #4CAF50 #222222; /* Couleur de la scrollbar */
+  scrollbar-width: thin;
 }
 
 body::-webkit-scrollbar {
-  display: none; /* Cache la barre de défilement */
+  width: 10px;
 }
 
-/* Conteneur principal */
-#game, #login {
-  width: 90%; /* Adaptation sur petits écrans */
-  max-width: 400px; /* Limite sur écrans larges */
+body::-webkit-scrollbar-thumb {
+  background-color: #4CAF50;
+  border-radius: 10px;
 }
 
-/* Texte principal */
+body::-webkit-scrollbar-track {
+  background-color: #222222;
+  border-radius: 10px;
+}
+
+/* Titre principal */
 h1 {
-  font-size: calc(2rem + 1vw);
-  text-align: center;
-  margin: 20px 0;
-  color: #0f0;
-  text-shadow: 0 0 10px #00ff00, 0 0 20px #0f0;
+  font-size: 3rem;
+  margin-bottom: 20px;
+  color: #8aff80;
+  text-shadow: 0 0 10px #00ff00, 0 0 20px #8aff80;
   animation: glow 2s infinite alternate;
 }
 
-/* Animation de l'effet glow */
 @keyframes glow {
   from {
-    text-shadow: 0 0 10px #0f0, 0 0 20px #00ff00;
+    text-shadow: 0 0 10px #00ff00, 0 0 20px #8aff80;
   }
   to {
-    text-shadow: 0 0 20px #00ff00, 0 0 40px #0f0;
+    text-shadow: 0 0 20px #8aff80, 0 0 40px #00ff00;
   }
 }
 
-/* Formulaire de saisie */
-.form {
+/* Style des paragraphes */
+p, .resultat, .tropHautTropBas {
+  font-size: 1.2rem;
+  color: #8aff80;
+  text-align: center;
+  margin: 10px 0;
+  text-shadow: 0 0 5px #00ff00, 0 0 10px #8aff80;
+}
+
+/* Connexion et formulaire du jeu */
+#login {
   display: flex;
-  flex-direction: column; /* Les éléments sont empilés sur petits écrans */
+  flex-direction: column;
   align-items: center;
-  gap: 15px; /* Espacement entre les éléments */
-  margin-top: 20px;
+  justify-content: center;
 }
 
-input[type="text"] {
+input[type="text"], input[type="number"], button {
   padding: 10px;
-  font-size: calc(1rem + 0.5vw); /* Taille ajustable */
-  width: 100%; /* Prend toute la largeur */
-  max-width: 300px; /* Largeur limite sur grands écrans */
-  border: 2px solid #0f0;
-  background: #000;
-  color: #0f0;
+  font-size: 1rem;
   border-radius: 10px;
-  box-shadow: 0 0 5px #0f0;
+  border: 2px solid #8aff80;
+  background: #2a2a2a;
+  color: #8aff80;
+  box-shadow: 0 0 5px #00ff00;
+  margin: 10px;
   outline: none;
-  transition: 0.3s;
+  transition: 0.3s ease;
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus, input[type="number"]:focus {
   box-shadow: 0 0 10px #00ff00;
 }
 
-input[type="submit"], .reset {
-  width: 100%; /* Boutons prennent la largeur disponible */
-  max-width: 300px; /* Largeur limite */
-  padding: 10px;
-  font-size: calc(1rem + 0.5vw);
-  font-weight: bold;
-  text-transform: uppercase;
-  color: #000;
-  background: #0f0;
-  border: 2px solid #0f0;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-input[type="submit"]:hover, .reset:hover {
-  background: #000;
-  color: #0f0;
+button:hover {
+  background-color: #1a1a1a;
+  color: #8aff80;
   border: 2px solid #00ff00;
   box-shadow: 0 0 10px #00ff00;
 }
 
-/* Textes d'information */
-.informations p {
-  margin: 10px 0;
-  font-size: calc(1rem + 0.5vw);
-  text-align: center;
-  animation: fadeIn 1s ease-in-out;
+#game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
+button#reset {
+  display: none;
+  background-color: #8aff80;
+  color: #000;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 5px;
+  border: none;
+  padding: 10px 20px;
+  box-shadow: 0 0 10px #00ff00;
+}
+
+/* Style de la table des scores */
+#scoreTableContainer {
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 2px solid #4CAF50;
+  border-radius: 10px;
+  margin-top: 20px;
+  padding: 15px;
+}
+
+#scoreTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #2a2a2a;
+}
+
+#scoreTable th, #scoreTable td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #333333;
+}
+
+#scoreTable th {
+  background-color: #4CAF50;
+  color: white;
+}
+
+#scoreTable tr:nth-child(even) {
+  background-color: #3a3a3a;
+}
+
+#scoreTable tr:hover {
+  background-color: #5a5a5a;
+}
+
+/* Animation pour l'affichage des résultats */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -111,65 +162,33 @@ input[type="submit"]:hover, .reset:hover {
   }
 }
 
-/* Tableau des scores */
-#scoreTableContainer {
-  max-height: 40vh;
-  width: 100%;
-  max-width: 700px; /* Augmente la largeur maximale sur grands écrans */
-  overflow-y: auto;
-  border: 2px solid #0f0;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #00ff00;
-  background: #000;
-  margin: 20px auto;
-  padding: 15px;
+.informations p {
+  margin: 5px 0;
+  font-size: 1rem;
+  animation: fadeIn 1s ease-in-out;
 }
 
-#scoreTable {
-  border-collapse: collapse;
-  width: 100%;
-  color: #0f0;
-  font-size: calc(1rem + 0.3vw);
-}
-
-#scoreTable th, #scoreTable td {
-  border: 1px solid #0f0;
-  text-align: center;
-  padding: 15px 20px; /* Plus d'espace autour des cellules */
-  white-space: nowrap; /* Empêche le texte de se couper pour les grandes lignes */
-}
-
-#scoreTable th {
-  font-size: calc(1.1rem + 0.3vw); /* Taille de police un peu plus grande pour les en-têtes */
-}
-
-tbody tr:nth-child(odd) {
-  background: rgba(0, 255, 0, 0.1);
-}
-
-tbody tr:nth-child(even) {
-  background: rgba(0, 255, 0, 0.05);
-}
-
-/* Réglages pour petits écrans */
+/* Pour les écrans plus petits */
 @media screen and (max-width: 768px) {
   h1 {
-    font-size: calc(1.5rem + 2vw);
+    font-size: 2rem;
   }
 
-  p, input[type="text"], input[type="submit"], .reset {
-    font-size: calc(0.9rem + 1vw);
+  p, .resultat, .tropHautTropBas {
+    font-size: 1rem;
   }
 
-  .form {
-    gap: 10px; /* Réduit l'espacement */
+  input[type="text"], input[type="number"], button {
+    font-size: 0.9rem;
+    padding: 8px;
+    margin: 8px;
   }
 
   #scoreTableContainer {
-    max-height: 50vh; /* Augmente l’espace scrollable */
+    max-height: 60vh;
   }
 
   #scoreTable th, #scoreTable td {
-    padding: 10px 15px; /* Réduit l’espace sur mobile mais garde de la lisibilité */
+    padding: 8px;
   }
 }
