@@ -1,45 +1,146 @@
-/* Styles du tableau */
+/* Corps de page */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Share Tech Mono', monospace;
+  background: radial-gradient(circle, #001f3f, #000);
+  color: #0f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  overflow-y: scroll;
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Cache la barre de défilement */
+}
+
+/* Conteneur principal (jeu et login) */
+#game, #login {
+  width: 90%;
+  max-width: 450px; /* Un peu plus large pour les écrans plus grands */
+  padding: 20px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Texte principal */
+h1 {
+  font-size: calc(1.8rem + 2vw); /* Titre plus fluide */
+  text-align: center;
+  margin: 20px 0;
+  color: #0f0;
+  text-shadow: 0 0 10px #00ff00, 0 0 20px #0f0;
+  animation: glow 2s infinite alternate;
+}
+
+/* Animation du glow */
+@keyframes glow {
+  from {
+    text-shadow: 0 0 10px #0f0, 0 0 20px #00ff00;
+  }
+  to {
+    text-shadow: 0 0 20px #00ff00, 0 0 40px #0f0;
+  }
+}
+
+/* Formulaire de saisie */
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+input[type="text"] {
+  padding: 12px;
+  font-size: calc(1rem + 0.5vw); /* Ajustement de taille */
+  width: 100%;
+  max-width: 350px; /* Taille plus agréable sur grands écrans */
+  border: 2px solid #0f0;
+  background: #000;
+  color: #0f0;
+  border-radius: 10px;
+  box-shadow: 0 0 5px #0f0;
+  outline: none;
+  transition: 0.3s;
+}
+
+input[type="text"]:focus {
+  box-shadow: 0 0 10px #00ff00;
+}
+
+input[type="submit"], .reset {
+  width: 100%;
+  max-width: 350px; /* Limite de largeur sur grands écrans */
+  padding: 12px;
+  font-size: calc(1rem + 0.5vw);
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #000;
+  background: #0f0;
+  border: 2px solid #0f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+input[type="submit"]:hover, .reset:hover {
+  background: #000;
+  color: #0f0;
+  border: 2px solid #00ff00;
+  box-shadow: 0 0 10px #00ff00;
+}
+
+/* Textes d'information */
+.informations p {
+  margin: 10px 0;
+  font-size: calc(1rem + 0.3vw);
+  text-align: center;
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tableau des scores */
 #scoreTableContainer {
-  max-height: 40vh; /* Reste scrollable */
-  width: 90%; /* Largeur adaptée */
-  max-width: 900px; /* Largeur pour les écrans larges */
+  max-height: 40vh;
+  width: 100%;
+  max-width: 500px; /* Largeur maximum sur grands écrans */
   overflow-y: auto;
   border: 2px solid #0f0;
   border-radius: 10px;
-  box-shadow: 0 0 20px #00ff00;
-  background: #001f3f;
-  margin: 40px auto; /* Un peu plus d'espace au-dessus et en-dessous */
-  padding: 10px; /* Ajout d'un padding interne pour un look propre */
+  box-shadow: 0 0 10px #00ff00;
+  background: #000;
+  margin: 20px auto;
+  padding: 10px;
 }
 
-/* Tableau complet */
 #scoreTable {
   border-collapse: collapse;
   width: 100%;
   color: #0f0;
-  font-size: 1.2rem; /* Taille du texte plus grande */
+  font-size: calc(1rem + 0.3vw);
 }
 
-/* Titres */
-#scoreTable th {
+#scoreTable th, #scoreTable td {
+  border: 1px solid #0f0;
   text-align: center;
-  padding: 15px 20px; /* Plus d'espace interne */
-  background: #00264d; /* Couleur de fond différente pour les titres */
-  font-weight: bold;
-  font-size: 1.3rem;
-  text-transform: uppercase;
-  border-bottom: 3px solid #0f0;
+  padding: 12px;
 }
 
-/* Contenu */
-#scoreTable td {
-  text-align: center;
-  padding: 15px 20px; /* Espacement interne généreux */
-  border-bottom: 1px solid rgba(0, 255, 0, 0.3); /* Lignes séparatrices plus subtiles */
-  font-size: 1.1rem;
-}
-
-/* Alternance de couleurs */
 tbody tr:nth-child(odd) {
   background: rgba(0, 255, 0, 0.1);
 }
@@ -48,23 +149,21 @@ tbody tr:nth-child(even) {
   background: rgba(0, 255, 0, 0.05);
 }
 
-/* Effet survol */
-tbody tr:hover {
-  background: rgba(0, 255, 0, 0.3); /* Ligne survolée mise en évidence */
-  cursor: pointer; /* Curseur interactif */
-  transform: scale(1.01); /* Légère mise en avant */
-  transition: 0.2s ease;
-}
-
-/* Ajustements pour petits écrans */
+/* Réglages pour petits écrans */
 @media screen and (max-width: 768px) {
-  #scoreTableContainer {
-    max-width: 100%; /* Prend toute la largeur */
-    padding: 5px; /* Réduit le padding interne */
+  h1 {
+    font-size: calc(1.5rem + 2vw); /* Taille plus petite mais agréable */
   }
 
-  #scoreTable th, #scoreTable td {
-    padding: 10px; /* Réduit l'espace interne */
-    font-size: 1rem; /* Réduit la taille des polices */
+  p, input[type="text"], input[type="submit"], .reset {
+    font-size: calc(0.9rem + 1vw);
+  }
+
+  .form {
+    gap: 8px;
+  }
+
+  #scoreTableContainer {
+    max-height: 50vh; /* Plus d'espace scrollable */
   }
 }
