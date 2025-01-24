@@ -17,6 +17,7 @@ body {
   overflow: hidden;
   padding: 20px;
   text-align: center;
+  overflow-y: auto; /* Permet le défilement vertical si nécessaire */
 }
 
 h1 {
