@@ -1,190 +1,205 @@
-/* Reset et style global */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, get } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-auth.js";
+
+// Config Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyAEuk1wol1lNcSrzEGqRu31kCuoGpD9PTQ",
+  authDomain: "jeu-hasard.firebaseapp.com",
+  databaseURL: "https://jeu-hasard-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jeu-hasard",
+  storageBucket: "jeu-hasard.appspot.com",
+  messagingSenderId: "654185101593",
+  appId: "1:654185101593:web:5b95112878620ace536d88"
+};
+
+// Initialise Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth();
+
+// Variables pour gérer l'état du jeu
+let userId = localStorage.getItem("userId");
+let username = localStorage.getItem("username");
+let randomNumber;
+let compteur = 0;
+let score = 0;
+
+// Gestion de la connexion via cookie
+if (!userId) {
+  const loginDiv = document.getElementById("login");
+  const gameDiv = document.getElementById("game");
+  const usernameInput = document.getElementById("username");
+  const loginButton = document.getElementById("loginButton");
+
+  // Si pas de cookie, on demande un pseudo
+  loginButton.addEventListener("click", async () => {
+    username = usernameInput.value.trim();
+
+    // Validation : autoriser uniquement les lettres (A-Z, a-z)
+    const usernameRegex = /^[a-zA-Z]+$/;
+    if (!usernameRegex.test(username)) {
+      alert("Le pseudo ne peut contenir que des lettres (A-Z, a-z). Pas de chiffres, espaces ou caractères spéciaux.");
+      usernameInput.value = ''; // On efface l'entrée utilisateur
+      return;
+    }
+
+    if (username === "") {
+      alert("Veuillez entrer un pseudo !");
+      return;
+    }
+
+    // Connexion avec un nouveau pseudo
+    signInAnonymously(auth).then(() => {
+      userId = auth.currentUser.uid;
+      localStorage.setItem("userId", userId);
+      localStorage.setItem("username", username);
+      console.log("Utilisateur connecté anonymement !");
+      loginDiv.style.display = "none";
+      gameDiv.style.display = "block";
+      startGame();
+      afficherScores(); // Charger les scores dès la connexion
+    }).catch((error) => console.error("Erreur d'authentification :", error));
+  });
+} else {
+  // Si déjà connecté avec cookie, on charge le jeu directement
+  const loginDiv = document.getElementById("login");
+  const gameDiv = document.getElementById("game");
+  loginDiv.style.display = "none";
+  gameDiv.style.display = "block";
+  username = localStorage.getItem("username");
+  startGame();
+  afficherScores(); // Charger les scores dès la connexion
 }
 
-body {
-  font-family: 'Share Tech Mono', monospace;
-  background: radial-gradient(circle, #1a1a1a, #0a0a0a); /* Fond sombre doux */
-  color: #8aff80; /* Vert clair, pour un contraste plus doux */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  overflow: hidden;
-  padding: 20px;
-  text-align: center;
-  overflow-y: auto; /* Permet le défilement vertical si nécessaire */
+// Fonction pour démarrer une nouvelle partie
+function startGame() {
+  randomNumber = Math.floor(Math.random() * 100) + 1;
+  compteur = 0;
+  score = 0;
+
+  document.getElementById("proposition").value = '';
+  document.querySelector(".resultat").textContent = '';
+  document.querySelector(".tropHautTropBas").textContent = '';
+  document.querySelector(".tentatives").textContent = '';
+  document.getElementById("proposition").disabled = false;
+  document.getElementById("envoyer").disabled = false;
+  document.getElementById("reset").style.display = "none"; // Reset masqué au début
+
+  document.getElementById("proposition").focus();
 }
 
-h1 {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  color: #8aff80; /* Couleur vert clair */
-  text-shadow: 0 0 10px #00ff00, 0 0 20px #8aff80; /* Lumière verte douce */
-  animation: glow 2s infinite alternate;
-}
-
-@keyframes glow {
-  from {
-    text-shadow: 0 0 10px #00ff00, 0 0 20px #8aff80;
+// Vérification de la proposition
+function verifier() {
+  const proposition = Number(document.getElementById("proposition").value);
+  if (isNaN(proposition) || proposition < 1 || proposition > 100) {
+    document.querySelector(".tropHautTropBas").textContent = "Veuillez entrer un nombre valide entre 1 et 100.";
+    return;
   }
-  to {
-    text-shadow: 0 0 20px #8aff80, 0 0 40px #00ff00;
+  compteur++;
+
+  if (proposition === randomNumber) {
+    score = Math.max(100 - compteur * 10, 0); // Calcul du score
+    document.querySelector(".resultat").textContent = `Bravo ${username || "Invité"} ! Vous avez trouvé en ${compteur} tentatives. 🎉`;
+    document.querySelector(".tentatives").textContent = `Score gagné : ${score} points.`;
+    sauvegarderScore(username, score);
+    afficherScores(); // Met à jour le tableau des scores
+    finDeJeu();
+  } else if (proposition < randomNumber) {
+    document.querySelector(".tropHautTropBas").textContent = "C'est plus grand !";
+  } else {
+    document.querySelector(".tropHautTropBas").textContent = "C'est plus petit !";
   }
-}
 
-/* Style des paragraphes */
-p, .resultat, .tropHautTropBas {
-  font-size: 1.2rem;
-  color: #8aff80; /* Texte en vert clair */
-  text-align: center;
-  margin: 10px 0;
-  text-shadow: 0 0 5px #00ff00, 0 0 10px #8aff80;
-}
+  document.querySelector(".tentatives").textContent = `Tentatives : ${compteur}`;
+  document.getElementById("proposition").value = '';
+  document.getElementById("proposition").focus();
 
-/* Connexion et formulaire du jeu */
-#login, #game {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%; /* Prendre toute la largeur disponible */
-  max-width: 500px; /* Limite de largeur */
-  text-align: center; /* Centre le texte dans ces sections */
-}
-
-input[type="text"], input[type="number"], button {
-  display: block;
-  margin: 10px auto; /* Centrer avec une marge automatique */
-  padding: 10px;
-  font-size: 1rem;
-  border-radius: 10px;
-  border: 2px solid #8aff80; /* Bordure vert clair */
-  background: #2a2a2a; /* Fond sombre mais doux */
-  color: #8aff80; /* Texte en vert clair */
-  box-shadow: 0 0 5px #00ff00;
-  outline: none;
-  transition: 0.3s ease;
-  width: 100%; /* Pour que les éléments prennent toute la largeur disponible */
-  max-width: 300px; /* Limite de largeur */
-}
-
-input[type="submit"]:focus, input[type="number"]:focus {
-  box-shadow: 0 0 10px #00ff00;
-}
-
-button:hover, input[type="submit"]:hover {
-  background-color: #1a1a1a; /* Fond plus foncé au survol */
-  color: #8aff80;
-  border: 2px solid #00ff00;
-  box-shadow: 0 0 10px #00ff00;
-}
-
-/* Style de la table des scores */
-#scoreTableContainer {
-  width: 100%;
-  max-height: 400px;
-  overflow-y: auto;
-  border: 2px solid #4CAF50; /* Bordure verte */
-  border-radius: 10px;
-  margin-top: 20px;
-}
-
-/* Style de la scrollbar */
-#scoreTableContainer::-webkit-scrollbar {
-  width: 12px;
-}
-
-#scoreTableContainer::-webkit-scrollbar-thumb {
-  background-color: #4CAF50;
-  border-radius: 10px;
-}
-
-#scoreTableContainer::-webkit-scrollbar-track {
-  background-color: #222222; /* Fond plus sombre pour la track */
-  border-radius: 10px;
-}
-
-/* Tableaux des scores */
-#scoreTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  background: #2a2a2a; /* Fond sombre pour la table */
-}
-
-#scoreTable th, #scoreTable td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #333333; /* Légère séparation entre les lignes */
-}
-
-#scoreTable th {
-  background-color: #4CAF50;
-  color: white;
-}
-
-#scoreTable tr:nth-child(even) {
-  background-color: #3a3a3a; /* Fond légèrement plus clair pour les lignes paires */
-}
-
-#scoreTable tr:hover {
-  background-color: #5a5a5a; /* Survol de ligne avec un fond un peu plus clair */
-}
-
-/* Section des profils */
-#userProfileSection {
-  margin-top: 20px;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-#userProfileSection h3 {
-  font-size: 18px;
-  margin-bottom: 10px;
-}
-
-#userProfileSection ul {
-  list-style-type: none;
-  padding: 0;
-  text-align: center;
-}
-
-#userProfileSection ul li {
-  margin: 8px 0;
-}
-
-#userProfileSection ul li a {
-  text-decoration: none;
-  color: #0066cc;
-  font-weight: bold;
-}
-
-#userProfileSection ul li a:hover {
-  color: #004d99;
-  text-decoration: underline;
-}
-
-/* Animation pour l'affichage des résultats */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  if (compteur === 10 && proposition !== randomNumber) {
+    document.querySelector(".resultat").textContent = `Perdu ! Le nombre était ${randomNumber}. 😢`;
+    finDeJeu();
   }
 }
 
-.informations p {
-  margin: 5px 0;
-  font-size: 1rem;
-  animation: fadeIn 1s ease-in-out;
+// Désactiver les entrées de jeu et afficher "Reset"
+function finDeJeu() {
+  document.getElementById("envoyer").disabled = true;
+  document.getElementById("proposition").disabled = true;
+  document.getElementById("reset").style.display = "inline"; // Affiche le bouton Reset
 }
+
+// Sauvegarder ou ajouter des points pour un utilisateur
+function sauvegarderScore(username, points) {
+  const userRef = ref(db, `scores/${userId}`);
+
+  // Récupérer les points actuels de l'utilisateur avant de les ajouter
+  get(userRef).then((snapshot) => {
+    if (snapshot.exists()) {
+      const existingData = snapshot.val();
+      const newScore = existingData.score + points; // Ajouter les nouveaux points
+      set(userRef, {
+        username: username,
+        score: newScore // Mettre à jour avec le score cumulé
+      }).then(() => {
+        console.log("Score mis à jour avec succès !");
+      }).catch((error) => {
+        console.error("Erreur lors de l'enregistrement du score :", error);
+      });
+    } else {
+      // Si l'utilisateur n'a pas encore de score enregistré, on l'ajoute directement
+      set(userRef, {
+        username: username,
+        score: points // Enregistrer les premiers points
+      }).then(() => {
+        console.log("Score ajouté pour la première fois !");
+      }).catch((error) => {
+        console.error("Erreur lors de l'enregistrement du score :", error);
+      });
+    }
+  }).catch((error) => {
+    console.error("Erreur lors de la récupération du score :", error);
+  });
+}
+
+// Afficher les scores dans le tableau
+function afficherScores() {
+  const scoresRef = ref(db, "scores");
+  onValue(scoresRef, (snapshot) => {
+    const scoresData = snapshot.val();
+    if (!scoresData) {
+      console.log("Aucun score trouvé.");
+      return;
+    }
+
+    const scoresArray = [];
+    for (const key in scoresData) {
+      scoresArray.push(scoresData[key]);
+    }
+
+    scoresArray.sort((a, b) => b.score - a.score);
+
+    const scoreTable = document.getElementById("scoreTable").querySelector("tbody");
+    scoreTable.innerHTML = '';
+
+    scoresArray.forEach((data, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${data.username}</td>
+        <td>${data.score}</td>
+      `;
+      scoreTable.appendChild(row);
+    });
+  });
+}
+
+// Reset de la partie
+document.getElementById("reset").addEventListener("click", startGame);
+
+// Appuyer sur Enter pour envoyer la proposition
+document.getElementById("proposition").addEventListener("keypress", (e) => {
+  if (e.key === 'Enter') verifier();
+});
+
+// Appuyer sur "Envoyer"
+document.getElementById("envoyer").addEventListener("click", verifier);
