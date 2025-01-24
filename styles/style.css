@@ -8,16 +8,16 @@
 /* Corps de page */
 body {
   font-family: 'Share Tech Mono', monospace;
-  background: radial-gradient(circle, #1a1a1a, #0a0a0a); /* Fond sombre doux */
-  color: #8aff80; /* Vert clair, pour un contraste plus doux */
+  background: radial-gradient(circle, #1a1a1a, #0a0a0a);
+  color: #8aff80;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100vh;
-  overflow: auto; /* Permet d'avoir une scrollbar si nécessaire */
+  justify-content: flex-start; /* Change la position pour permettre le scroll */
+  min-height: 100vh; /* Minimum hauteur 100vh */
+  overflow-y: auto; /* Permet de faire défiler la page */
   padding: 20px;
-  scrollbar-color: #4CAF50 #222222; /* Couleur de la scrollbar */
+  scrollbar-color: #4CAF50 #222222;
   scrollbar-width: thin;
 }
 
@@ -94,15 +94,8 @@ button:hover {
   box-shadow: 0 0 10px #00ff00;
 }
 
-#game {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-button#reset {
-  display: none;
+button#reset, button#envoyer {
+  display: block;
   background-color: #8aff80;
   color: #000;
   font-weight: bold;
@@ -112,9 +105,23 @@ button#reset {
   border: none;
   padding: 10px 20px;
   box-shadow: 0 0 10px #00ff00;
+  transition: 0.3s;
 }
 
-/* Style de la table des scores */
+button#reset:hover, button#envoyer:hover {
+  background-color: #1a1a1a;
+  color: #8aff80;
+  border: 2px solid #00ff00;
+  box-shadow: 0 0 10px #00ff00;
+}
+
+#game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 #scoreTableContainer {
   width: 100%;
   max-height: 400px;
