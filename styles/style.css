@@ -1,5 +1,5 @@
 /* styles/style.css */
-/* Cacher le scroll général tout en permettant le défilement */
+/* Configuration du corps */
 body {
   margin: 0;
   padding: 0;
@@ -9,21 +9,20 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Permet un affichage aligné en haut */
+  justify-content: flex-start; /* Aligner vers le haut */
   height: 100vh;
-  overflow-y: scroll; /* Active le défilement global */
-  scrollbar-width: none; /* Cache la scrollbar pour Firefox */
-  -ms-overflow-style: none; /* Cache la scrollbar pour Internet Explorer */
+  overflow-y: scroll; /* Scroll global activé */
+  scrollbar-width: none; /* Cacher la scrollbar */
 }
 
 body::-webkit-scrollbar {
-  display: none; /* Cache la scrollbar pour Chrome/Safari */
+  display: none; /* Cache la scrollbar */
 }
 
 /* Titre principal */
 h1 {
-  font-size: 3rem;
-  margin-top: 20px;
+  font-size: calc(2rem + 1vw); /* Ajuste en fonction de l’écran */
+  margin: 20px 0;
   color: #0f0;
   text-shadow: 0 0 10px #00ff00, 0 0 20px #0f0;
   animation: glow 2s infinite alternate;
@@ -38,27 +37,27 @@ h1 {
   }
 }
 
-/* Texte général */
+/* Texte descriptif */
 p {
-  font-size: 1.2rem;
+  font-size: calc(1rem + 0.5vw); /* Taille responsive */
   text-align: center;
-  margin: 10px 0;
+  margin: calc(0.5rem + 1vw) 0;
   color: #0f0;
   text-shadow: 0 0 5px #0f0, 0 0 10px #00ff00;
 }
 
-/* Formulaire et champs */
+/* Boutons et champs de formulaire */
 .form {
-  margin-top: 20px;
+  margin-top: calc(1rem + 1vw); /* Espace responsive */
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: calc(0.5rem + 1vw); /* Espacement dynamique */
 }
 
 input[type="text"] {
-  padding: 10px;
-  font-size: 1rem;
+  padding: calc(0.5rem + 0.5vw);
+  font-size: calc(1rem + 0.5vw);
   border: 2px solid #0f0;
   background: #000;
   color: #0f0;
@@ -66,6 +65,8 @@ input[type="text"] {
   box-shadow: 0 0 5px #0f0;
   outline: none;
   transition: 0.3s;
+  max-width: 300px; /* Limite la largeur */
+  width: 50vw; /* Ajustable en fonction de l’écran */
 }
 
 input[type="text"]:focus {
@@ -73,8 +74,8 @@ input[type="text"]:focus {
 }
 
 input[type="submit"], .reset {
-  padding: 10px 20px;
-  font-size: 1rem;
+  padding: calc(0.5rem + 0.5vw) calc(1rem + 0.5vw);
+  font-size: calc(1rem + 0.5vw);
   font-weight: bold;
   text-transform: uppercase;
   color: #000;
@@ -93,8 +94,8 @@ input[type="submit"]:hover, .reset:hover {
 }
 
 .informations p {
-  margin: 5px 0;
-  font-size: 1rem;
+  margin: calc(0.5rem + 0.5vw) 0;
+  font-size: calc(1rem + 0.3vw);
   animation: fadeIn 1s ease-in-out;
 }
 
@@ -112,52 +113,47 @@ input[type="submit"]:hover, .reset:hover {
 /* Tableau des scores */
 #scoreTable {
   border-collapse: collapse;
-  width: 100%; /* Le tableau prend toute la largeur disponible */
+  width: 100%; /* Tableau responsive */
   color: #0f0;
 }
 
 #scoreTable th, #scoreTable td {
   border: 1px solid #0f0;
   text-align: center;
-  padding: 10px;
+  padding: calc(0.5rem + 0.5vw); /* Ajuste padding */
+  font-size: calc(1rem + 0.4vw); /* Taille dynamique */
 }
 
 #scoreTable th {
-  font-size: 1.2rem;
   text-transform: uppercase;
   background: #001f3f;
-}
-
-#scoreTable td {
-  font-size: 1rem;
 }
 
 #scoreTable tbody tr:nth-child(odd) {
   background: rgba(0, 255, 0, 0.1);
 }
 
-/* Conteneur pour le tableau (scrollable) */
+/* Conteneur scrollable pour le tableau */
 #scoreTableContainer {
-  max-height: 40vh; /* Limite la hauteur à 40% de l'écran */
-  width: 80%; /* Le conteneur prend 80% de la largeur */
-  overflow-y: auto; /* Scroll vertical pour le tableau */
-  border: 2px solid #0f0; /* Bordure verte */
-  border-radius: 10px; /* Coins arrondis */
-  box-shadow: 0 0 10px #00ff00; /* Ombre lumineuse */
-  background: #000; /* Fond noir */
-  margin: 20px auto;
+  max-height: 40vh; /* Limite la hauteur à 40% de l’écran */
+  width: 80%; /* Conteneur responsive */
+  overflow-y: auto;
+  border: 2px solid #0f0;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #00ff00;
+  background: #000;
+  margin: calc(1rem + 1vw) auto;
 }
 
-/* Style de la scrollbar pour le tableau */
 #scoreTableContainer::-webkit-scrollbar {
-  width: 10px; /* Largeur de la scrollbar */
+  width: 10px;
 }
 
 #scoreTableContainer::-webkit-scrollbar-thumb {
-  background: #00ff00; /* Couleur de la poignée */
+  background: #00ff00;
   border-radius: 5px;
 }
 
 #scoreTableContainer::-webkit-scrollbar-track {
-  background: #001f3f; /* Fond de la track */
+  background: #001f3f;
 }
