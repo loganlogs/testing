@@ -1,5 +1,5 @@
 /* styles/style.css */
-/*<link href="styles/style.css" rel="stylesheet" type="text/css">*/
+/* Cacher le scroll général tout en permettant le défilement */
 body {
   margin: 0;
   padding: 0;
@@ -9,14 +9,21 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* Permet un affichage aligné en haut */
   height: 100vh;
-  overflow: hidden;
+  overflow-y: scroll; /* Active le défilement global */
+  scrollbar-width: none; /* Cache la scrollbar pour Firefox */
+  -ms-overflow-style: none; /* Cache la scrollbar pour Internet Explorer */
 }
 
+body::-webkit-scrollbar {
+  display: none; /* Cache la scrollbar pour Chrome/Safari */
+}
+
+/* Titre principal */
 h1 {
   font-size: 3rem;
-  margin-bottom: 20px;
+  margin-top: 20px;
   color: #0f0;
   text-shadow: 0 0 10px #00ff00, 0 0 20px #0f0;
   animation: glow 2s infinite alternate;
@@ -31,6 +38,7 @@ h1 {
   }
 }
 
+/* Texte général */
 p {
   font-size: 1.2rem;
   text-align: center;
@@ -39,6 +47,7 @@ p {
   text-shadow: 0 0 5px #0f0, 0 0 10px #00ff00;
 }
 
+/* Formulaire et champs */
 .form {
   margin-top: 20px;
   display: flex;
@@ -100,29 +109,55 @@ input[type="submit"]:hover, .reset:hover {
   }
 }
 
-table {
+/* Tableau des scores */
+#scoreTable {
   border-collapse: collapse;
-  width: 80%;
-  margin: 20px auto;
+  width: 100%; /* Le tableau prend toute la largeur disponible */
   color: #0f0;
 }
 
-th, td {
+#scoreTable th, #scoreTable td {
   border: 1px solid #0f0;
   text-align: center;
   padding: 10px;
 }
 
-th {
+#scoreTable th {
   font-size: 1.2rem;
   text-transform: uppercase;
   background: #001f3f;
 }
 
-td {
+#scoreTable td {
   font-size: 1rem;
 }
 
-tbody tr:nth-child(odd) {
+#scoreTable tbody tr:nth-child(odd) {
   background: rgba(0, 255, 0, 0.1);
+}
+
+/* Conteneur pour le tableau (scrollable) */
+#scoreTableContainer {
+  max-height: 40vh; /* Limite la hauteur à 40% de l'écran */
+  width: 80%; /* Le conteneur prend 80% de la largeur */
+  overflow-y: auto; /* Scroll vertical pour le tableau */
+  border: 2px solid #0f0; /* Bordure verte */
+  border-radius: 10px; /* Coins arrondis */
+  box-shadow: 0 0 10px #00ff00; /* Ombre lumineuse */
+  background: #000; /* Fond noir */
+  margin: 20px auto;
+}
+
+/* Style de la scrollbar pour le tableau */
+#scoreTableContainer::-webkit-scrollbar {
+  width: 10px; /* Largeur de la scrollbar */
+}
+
+#scoreTableContainer::-webkit-scrollbar-thumb {
+  background: #00ff00; /* Couleur de la poignée */
+  border-radius: 5px;
+}
+
+#scoreTableContainer::-webkit-scrollbar-track {
+  background: #001f3f; /* Fond de la track */
 }
