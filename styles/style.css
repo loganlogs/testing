@@ -1,5 +1,4 @@
-/* styles/style.css */
-/* Configuration du corps */
+/* Corps de page */
 body {
   margin: 0;
   padding: 0;
@@ -9,55 +8,45 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start; /* Aligner vers le haut */
-  height: 100vh;
-  overflow-y: scroll; /* Scroll global activé */
-  scrollbar-width: none; /* Cacher la scrollbar */
+  justify-content: flex-start;
+  min-height: 100vh;
+  overflow-y: scroll;
 }
 
 body::-webkit-scrollbar {
-  display: none; /* Cache la scrollbar */
+  display: none; /* Cache la barre de défilement */
 }
 
-/* Titre principal */
+/* Conteneur principal */
+#game, #login {
+  width: 90%; /* Adaptation sur petits écrans */
+  max-width: 400px; /* Limite sur écrans larges */
+}
+
+/* Texte principal */
 h1 {
-  font-size: calc(2rem + 1vw); /* Ajuste en fonction de l’écran */
+  font-size: calc(2rem + 1vw);
+  text-align: center;
   margin: 20px 0;
   color: #0f0;
   text-shadow: 0 0 10px #00ff00, 0 0 20px #0f0;
   animation: glow 2s infinite alternate;
 }
 
-@keyframes glow {
-  from {
-    text-shadow: 0 0 10px #0f0, 0 0 20px #00ff00;
-  }
-  to {
-    text-shadow: 0 0 20px #00ff00, 0 0 40px #0f0;
-  }
-}
-
-/* Texte descriptif */
-p {
-  font-size: calc(1rem + 0.5vw); /* Taille responsive */
-  text-align: center;
-  margin: calc(0.5rem + 1vw) 0;
-  color: #0f0;
-  text-shadow: 0 0 5px #0f0, 0 0 10px #00ff00;
-}
-
-/* Boutons et champs de formulaire */
+/* Formulaire de saisie */
 .form {
-  margin-top: calc(1rem + 1vw); /* Espace responsive */
   display: flex;
+  flex-direction: column; /* Les éléments sont empilés sur petits écrans */
   align-items: center;
-  justify-content: center;
-  gap: calc(0.5rem + 1vw); /* Espacement dynamique */
+  gap: 15px; /* Espacement entre les éléments */
+  margin-top: 20px;
 }
 
 input[type="text"] {
-  padding: calc(0.5rem + 0.5vw);
-  font-size: calc(1rem + 0.5vw);
+  padding: 10px;
+  font-size: calc(1rem + 0.5vw); /* Taille ajustable */
+  width: 100%; /* Prend toute la largeur */
+  max-width: 300px; /* Largeur limite sur grands écrans */
   border: 2px solid #0f0;
   background: #000;
   color: #0f0;
@@ -65,8 +54,6 @@ input[type="text"] {
   box-shadow: 0 0 5px #0f0;
   outline: none;
   transition: 0.3s;
-  max-width: 300px; /* Limite la largeur */
-  width: 50vw; /* Ajustable en fonction de l’écran */
 }
 
 input[type="text"]:focus {
@@ -74,7 +61,9 @@ input[type="text"]:focus {
 }
 
 input[type="submit"], .reset {
-  padding: calc(0.5rem + 0.5vw) calc(1rem + 0.5vw);
+  width: 100%; /* Boutons prennent la largeur disponible */
+  max-width: 300px; /* Largeur limite */
+  padding: 10px;
   font-size: calc(1rem + 0.5vw);
   font-weight: bold;
   text-transform: uppercase;
@@ -93,9 +82,11 @@ input[type="submit"]:hover, .reset:hover {
   box-shadow: 0 0 10px #00ff00;
 }
 
+/* Textes d'information */
 .informations p {
-  margin: calc(0.5rem + 0.5vw) 0;
-  font-size: calc(1rem + 0.3vw);
+  margin: 10px 0;
+  font-size: calc(1rem + 0.5vw);
+  text-align: center;
   animation: fadeIn 1s ease-in-out;
 }
 
@@ -111,49 +102,46 @@ input[type="submit"]:hover, .reset:hover {
 }
 
 /* Tableau des scores */
+#scoreTableContainer {
+  max-height: 40vh;
+  width: 100%;
+  max-width: 400px;
+  overflow-y: auto;
+  border: 2px solid #0f0;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #00ff00;
+  background: #000;
+  margin: 20px auto;
+}
+
 #scoreTable {
   border-collapse: collapse;
-  width: 100%; /* Tableau responsive */
+  width: 100%;
   color: #0f0;
 }
 
 #scoreTable th, #scoreTable td {
   border: 1px solid #0f0;
   text-align: center;
-  padding: calc(0.5rem + 0.5vw); /* Ajuste padding */
-  font-size: calc(1rem + 0.4vw); /* Taille dynamique */
+  padding: 10px;
+  font-size: calc(1rem + 0.3vw);
 }
 
-#scoreTable th {
-  text-transform: uppercase;
-  background: #001f3f;
-}
+/* Réglages pour petits écrans */
+@media screen and (max-width: 768px) {
+  h1 {
+    font-size: calc(1.5rem + 2vw);
+  }
 
-#scoreTable tbody tr:nth-child(odd) {
-  background: rgba(0, 255, 0, 0.1);
-}
+  p, input[type="text"], input[type="submit"], .reset {
+    font-size: calc(0.9rem + 1vw);
+  }
 
-/* Conteneur scrollable pour le tableau */
-#scoreTableContainer {
-  max-height: 40vh; /* Limite la hauteur à 40% de l’écran */
-  width: 80%; /* Conteneur responsive */
-  overflow-y: auto;
-  border: 2px solid #0f0;
-  border-radius: 10px;
-  box-shadow: 0 0 10px #00ff00;
-  background: #000;
-  margin: calc(1rem + 1vw) auto;
-}
+  .form {
+    gap: 10px; /* Réduit l'espacement */
+  }
 
-#scoreTableContainer::-webkit-scrollbar {
-  width: 10px;
-}
-
-#scoreTableContainer::-webkit-scrollbar-thumb {
-  background: #00ff00;
-  border-radius: 5px;
-}
-
-#scoreTableContainer::-webkit-scrollbar-track {
-  background: #001f3f;
+  #scoreTableContainer {
+    max-height: 50vh; /* Augmente l’espace scrollable */
+  }
 }
