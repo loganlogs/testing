@@ -17,18 +17,15 @@ body::-webkit-scrollbar {
   display: none; /* Cache la barre de défilement */
 }
 
-/* Conteneur principal (jeu et login) */
+/* Conteneur principal */
 #game, #login {
-  width: 90%;
-  max-width: 450px; /* Un peu plus large pour les écrans plus grands */
-  padding: 20px;
-  box-sizing: border-box;
-  text-align: center;
+  width: 90%; /* Adaptation sur petits écrans */
+  max-width: 400px; /* Limite sur écrans larges */
 }
 
 /* Texte principal */
 h1 {
-  font-size: calc(1.8rem + 2vw); /* Titre plus fluide */
+  font-size: calc(2rem + 1vw);
   text-align: center;
   margin: 20px 0;
   color: #0f0;
@@ -36,7 +33,7 @@ h1 {
   animation: glow 2s infinite alternate;
 }
 
-/* Animation du glow */
+/* Animation de l'effet glow */
 @keyframes glow {
   from {
     text-shadow: 0 0 10px #0f0, 0 0 20px #00ff00;
@@ -49,17 +46,17 @@ h1 {
 /* Formulaire de saisie */
 .form {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Les éléments sont empilés sur petits écrans */
   align-items: center;
-  gap: 10px;
+  gap: 15px; /* Espacement entre les éléments */
   margin-top: 20px;
 }
 
 input[type="text"] {
-  padding: 12px;
-  font-size: calc(1rem + 0.5vw); /* Ajustement de taille */
-  width: 100%;
-  max-width: 350px; /* Taille plus agréable sur grands écrans */
+  padding: 10px;
+  font-size: calc(1rem + 0.5vw); /* Taille ajustable */
+  width: 100%; /* Prend toute la largeur */
+  max-width: 300px; /* Largeur limite sur grands écrans */
   border: 2px solid #0f0;
   background: #000;
   color: #0f0;
@@ -74,9 +71,9 @@ input[type="text"]:focus {
 }
 
 input[type="submit"], .reset {
-  width: 100%;
-  max-width: 350px; /* Limite de largeur sur grands écrans */
-  padding: 12px;
+  width: 100%; /* Boutons prennent la largeur disponible */
+  max-width: 300px; /* Largeur limite */
+  padding: 10px;
   font-size: calc(1rem + 0.5vw);
   font-weight: bold;
   text-transform: uppercase;
@@ -98,7 +95,7 @@ input[type="submit"]:hover, .reset:hover {
 /* Textes d'information */
 .informations p {
   margin: 10px 0;
-  font-size: calc(1rem + 0.3vw);
+  font-size: calc(1rem + 0.5vw);
   text-align: center;
   animation: fadeIn 1s ease-in-out;
 }
@@ -118,14 +115,14 @@ input[type="submit"]:hover, .reset:hover {
 #scoreTableContainer {
   max-height: 40vh;
   width: 100%;
-  max-width: 500px; /* Largeur maximum sur grands écrans */
+  max-width: 700px; /* Augmente la largeur maximale sur grands écrans */
   overflow-y: auto;
   border: 2px solid #0f0;
   border-radius: 10px;
   box-shadow: 0 0 10px #00ff00;
   background: #000;
   margin: 20px auto;
-  padding: 10px;
+  padding: 15px;
 }
 
 #scoreTable {
@@ -138,7 +135,12 @@ input[type="submit"]:hover, .reset:hover {
 #scoreTable th, #scoreTable td {
   border: 1px solid #0f0;
   text-align: center;
-  padding: 12px;
+  padding: 15px 20px; /* Plus d'espace autour des cellules */
+  white-space: nowrap; /* Empêche le texte de se couper pour les grandes lignes */
+}
+
+#scoreTable th {
+  font-size: calc(1.1rem + 0.3vw); /* Taille de police un peu plus grande pour les en-têtes */
 }
 
 tbody tr:nth-child(odd) {
@@ -152,7 +154,7 @@ tbody tr:nth-child(even) {
 /* Réglages pour petits écrans */
 @media screen and (max-width: 768px) {
   h1 {
-    font-size: calc(1.5rem + 2vw); /* Taille plus petite mais agréable */
+    font-size: calc(1.5rem + 2vw);
   }
 
   p, input[type="text"], input[type="submit"], .reset {
@@ -160,10 +162,14 @@ tbody tr:nth-child(even) {
   }
 
   .form {
-    gap: 8px;
+    gap: 10px; /* Réduit l'espacement */
   }
 
   #scoreTableContainer {
-    max-height: 50vh; /* Plus d'espace scrollable */
+    max-height: 50vh; /* Augmente l’espace scrollable */
+  }
+
+  #scoreTable th, #scoreTable td {
+    padding: 10px 15px; /* Réduit l’espace sur mobile mais garde de la lisibilité */
   }
 }
